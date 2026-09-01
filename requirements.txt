@@ -1,0 +1,6 @@
+# Optional — only needed for the Stage 4 local-LLM path (`python reconcile.py`).
+# Everything else (generate_data.py, reconcile.py --no-llm, evaluate.py,
+# run_sweep.py, app.py) is pure Python stdlib and needs no installs.
+transformers>=4.40.0
+torch>=2.1.0
+accelerate>=0.27.0

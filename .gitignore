@@ -1,0 +1,25 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# --- Generated pipeline artifacts (reproduce: generate_data.py -> reconcile.py -> evaluate.py) ---
+bank_statement.csv
+company_ledger.csv
+ground_truth.csv
+matches.csv
+exceptions.csv
+evaluation_summary.json
+reconciliation_report.json
+sweep_results/
+.llm_cache.json
+llm_run_output.txt
+*.log
+
+# --- OS / editor noise ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

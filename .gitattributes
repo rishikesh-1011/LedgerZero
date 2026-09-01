@@ -1,0 +1,12 @@
+# Normalize line endings across platforms
+* text=auto
+
+# Explicit text types
+*.py text
+*.md text
+*.csv text
+*.json text
+*.yml text
+*.yaml text
+*.html text
+*.txt text

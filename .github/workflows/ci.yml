@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+# The heuristic pipeline (generate -> reconcile --no-llm -> evaluate -> sweep)
+# is pure Python stdlib, so CI needs NO pip installs and finishes in seconds.
+# The GPU/LLM path is exercised locally via `python reconcile.py`.
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Generate synthetic data (seed 42)
+        run: python generate_data.py --seed 42
+
+      - name: Reconcile (heuristic Stage 4)
+        run: python reconcile.py --no-llm
+
+      - name: Evaluate against ground truth
+        run: python evaluate.py
+
+      - name: Assert measured accuracy (the CI gate)
+        run: |
+          python - <<'EOF'
+          import json
+
+          with open("evaluation_summary.json", encoding="utf-8") as f:
+              s = json.load(f)
+
+          assert s["precision"] == 1.0, f"precision regressed: {s['precision']}"
+          assert s["bank_recall"] == 1.0, f"bank recall regressed: {s['bank_recall']}"
+          assert s["ledger_recall"] == 1.0, f"ledger recall regressed: {s['ledger_recall']}"
+          assert s["matches_wrong"] == 0, "wrong matches introduced"
+          assert s["self_consistency_collisions"] == 0, "double-matched rows"
+          assert s["honest_exception_list"] is True, "exception list not honest"
+          print("CI gate passed: precision", s["precision"],
+                "| recall", s["bank_recall"], "| honest:", s["honest_exception_list"])
+          EOF
+
+      - name: Multi-seed sweep smoke test
+        run: python run_sweep.py --seeds 3
