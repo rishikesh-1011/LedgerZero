@@ -70,6 +70,15 @@ def main():
     print("WEB UI SMOKE TEST (app.py + dashboard.html)")
     print("=" * 60)
 
+    # The reconcile API saves every run to reconciliation_report.json, which
+    # the dashboard loads as its landing view.  Back it up so this smoke
+    # test never clobbers the last real reconciliation the user ran.
+    report_path = os.path.join(HERE, "reconciliation_report.json")
+    report_backup = None
+    if os.path.exists(report_path):
+        with open(report_path, "rb") as f:
+            report_backup = f.read()
+
     kill_port_owners()
     proc = subprocess.Popen([sys.executable, "app.py"], cwd=HERE,
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -140,6 +149,12 @@ def main():
             proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
             proc.kill()
+        # Restore the dashboard's landing report exactly as it was.
+        if report_backup is not None:
+            with open(report_path, "wb") as f:
+                f.write(report_backup)
+        elif os.path.exists(report_path):
+            os.remove(report_path)
 
 
 if __name__ == "__main__":
