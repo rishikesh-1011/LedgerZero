@@ -49,6 +49,20 @@ def reconcile_records(bank_rows, ledger_rows):
     all_matches += s4_matches
     review_ids = {id(r) for r in review_rows}
 
+    def action_for(row):
+        if id(row) in review_ids:
+            return "needs_human_review"
+        if row.get("vendor") == "Bank Charges":
+            return "likely_bank_fee"
+        return "investigate_orphan"
+
+    def reason_for(row):
+        if id(row) in review_ids:
+            return "matcher declined to guess (ambiguous; needs human review)"
+        if row.get("vendor") == "Bank Charges":
+            return "bank charge with no ledger counterpart"
+        return "no confident match found in the other system"
+
     tier_counts = {}
     for m in all_matches:
         tier_counts[m["tier"]] = tier_counts.get(m["tier"], 0) + 1
@@ -57,6 +71,15 @@ def reconcile_records(bank_rows, ledger_rows):
         (len(m["bank"]) if isinstance(m["bank"], list) else 1) for m in all_matches
     )
     match_rate = (matched_bank_rows / total_bank * 100) if total_bank > 0 else 0.0
+
+    total_bank_value = sum(float(r.get("amount") or 0) for r in bank_rows)
+    total_ledger_value = sum(float(r.get("amount") or 0) for r in ledger_rows)
+    matched_bank_value = sum(
+        sum(x["amount"] for x in (m["bank"] if isinstance(m["bank"], list) else [m["bank"]]))
+        for m in all_matches
+    )
+    matched_ledger_value = sum(m["ledger"]["amount"] for m in all_matches)
+    bank_value_pct = (matched_bank_value / total_bank_value * 100) if total_bank_value else 0.0
 
     report = {
         "generated_at": datetime.now().isoformat(),
@@ -68,6 +91,13 @@ def reconcile_records(bank_rows, ledger_rows):
             "total_exceptions": len(bank) + len(ledger),
             "needs_human_review": sum(1 for r in list(bank) + list(ledger)
                                       if id(r) in review_ids),
+            "total_bank_value": round(total_bank_value, 2),
+            "matched_bank_value": round(matched_bank_value, 2),
+            "bank_value_pct": round(bank_value_pct, 1),
+            "total_ledger_value": round(total_ledger_value, 2),
+            "matched_ledger_value": round(matched_ledger_value, 2),
+            "ledger_value_pct": round(matched_ledger_value / total_ledger_value * 100, 1)
+                               if total_ledger_value else 0.0,
             "tier_counts": tier_counts,
         },
         "matches": [],
@@ -104,7 +134,8 @@ def reconcile_records(bank_rows, ledger_rows):
             "reference_id": b.get("reference_id", ""),
             "vendor": b.get("vendor", ""),
             "row_index": b.get("_row_index", 0),
-            "reason": "no confident match found in ledger",
+            "recommended_action": action_for(b),
+            "reason": reason_for(b),
         })
     for l in ledger:
         report["exceptions"].append({
@@ -114,7 +145,8 @@ def reconcile_records(bank_rows, ledger_rows):
             "reference_id": l.get("reference_id", ""),
             "vendor": l.get("vendor", ""),
             "row_index": l.get("_row_index", 0),
-            "reason": "no confident match found in bank statement",
+            "recommended_action": action_for(l),
+            "reason": reason_for(l),
         })
 
     # Save to disk as well

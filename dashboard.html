@@ -319,7 +319,7 @@
         }
 
         /* ========================================================
-           SUMMARY METRICS
+           SUMMARY METRICS + MATCH-RATE RING
            ======================================================== */
         .metrics-row {
             display: flex;
@@ -331,11 +331,40 @@
         }
 
         .hero__rate {
+            position: relative;
+            width: 176px;
+            height: 176px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
         }
 
+        .rate-ring {
+            position: absolute;
+            inset: 0;
+            width: 176px;
+            height: 176px;
+            transform: rotate(-90deg);
+        }
+
+        .rate-ring__track {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.07);
+            stroke-width: 11;
+        }
+
+        .rate-ring__bar {
+            fill: none;
+            stroke: url(#rate-grad);
+            stroke-width: 11;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
         .hero__rate-value {
-            font-size: 4.8rem;
+            font-size: 2.7rem;
             font-weight: 900;
             letter-spacing: -0.04em;
             background: var(--gradient-match);
@@ -344,20 +373,23 @@
             background-clip: text;
             line-height: 1;
             font-variant-numeric: tabular-nums;
+            margin-top: 4px;
         }
 
         .hero__rate-label {
-            font-size: 0.82rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             font-weight: 600;
-            margin-top: 4px;
+            margin-top: 6px;
             letter-spacing: 0.05em;
             text-transform: uppercase;
+            max-width: 120px;
+            line-height: 1.4;
         }
 
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 14px;
             margin-bottom: 28px;
         }
@@ -415,6 +447,27 @@
         }
         .summary-card--exceptions .summary-card__value {
             color: var(--color-exception);
+        }
+
+        .summary-card--value {
+            --card-accent: linear-gradient(90deg, #34d399, #0ea5e9);
+        }
+        .summary-card--value .summary-card__value {
+            color: var(--color-exact);
+        }
+        .summary-card--value .summary-card__sub {
+            color: var(--text-secondary);
+            font-size: 0.76rem;
+            font-weight: 600;
+            margin-top: 6px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .summary-card--review {
+            --card-accent: linear-gradient(90deg, #f59e0b, #f97316);
+        }
+        .summary-card--review .summary-card__value {
+            color: #fbbf24;
         }
 
         /* ========================================================
@@ -805,7 +858,7 @@
             padding: 12px 18px;
             margin-bottom: 8px;
             display: grid;
-            grid-template-columns: 100px 120px 95px 1fr 130px;
+            grid-template-columns: 100px 120px 95px 160px 1fr 130px;
             gap: 14px;
             align-items: center;
             transition: all 0.2s;
@@ -830,6 +883,44 @@
         .exception-source--bank { background: rgba(251, 146, 60, 0.1); color: #fb923c; }
         .exception-source--ledger { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
 
+        .exception-filters {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .exception-filters .filter-btn {
+            font-size: 0.72rem;
+            padding: 5px 10px;
+        }
+        .exception-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.66rem;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 99px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+            width: fit-content;
+        }
+        .exception-action--needs_human_review {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .exception-action--likely_bank_fee {
+            background: rgba(96, 165, 250, 0.12);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+        }
+        .exception-action--investigate_orphan {
+            background: rgba(244, 63, 94, 0.1);
+            color: #fb7185;
+            border: 1px solid rgba(244, 63, 94, 0.25);
+        }
+
         /* Detail slide-out */
         .detail-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .detail-overlay.open { opacity: 1; pointer-events: all; }
@@ -853,11 +944,67 @@
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
+        /* Toasts */
+        .toast-stack {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 360px;
+        }
+        .toast {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            background: rgba(17, 24, 39, 0.95);
+            border: 1px solid var(--border-glass);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            font-size: 0.84rem;
+            color: var(--text-primary);
+            animation: toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+            backdrop-filter: blur(10px);
+        }
+        .toast--success { border-color: rgba(52, 211, 153, 0.4); }
+        .toast--success .toast__dot { background: #34d399; box-shadow: 0 0 10px #34d399; }
+        .toast--error { border-color: rgba(244, 63, 94, 0.45); }
+        .toast--error .toast__dot { background: #f43f5e; box-shadow: 0 0 10px #f43f5e; }
+        .toast__dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+        @keyframes toast-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+        .toast--out { opacity: 0; transform: translateX(20px); transition: all 0.3s; }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-glass);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 0.74rem;
+            color: var(--text-muted);
+        }
+        .footer__badges { display: flex; gap: 8px; flex-wrap: wrap; }
+        .footer__badge { padding: 3px 10px; border-radius: 99px; border: 1px solid var(--border-glass); background: var(--bg-glass); }
+
         .no-rows { text-align: center; padding: 36px 20px; color: var(--text-muted); font-size: 0.85rem; }
 
         @media (max-width: 960px) {
             .upload-grid, .content-grid { grid-template-columns: 1fr; }
+            .summary-grid { grid-template-columns: repeat(3, 1fr); }
+            .exception-row { grid-template-columns: 90px 110px 90px 150px 1fr; }
+        }
+
+        @media (max-width: 620px) {
             .summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .hero__rate { transform: scale(0.9); }
+            .exception-row { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -938,6 +1085,16 @@
             <!-- Rate Counter & KPI Cards -->
             <div class="metrics-row">
                 <div class="hero__rate">
+                    <svg class="rate-ring" viewBox="0 0 176 176" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="rate-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#34d399"/>
+                                <stop offset="100%" stop-color="#60a5fa"/>
+                            </linearGradient>
+                        </defs>
+                        <circle class="rate-ring__track" cx="88" cy="88" r="82"></circle>
+                        <circle class="rate-ring__bar" id="rate-ring-bar" cx="88" cy="88" r="82"></circle>
+                    </svg>
                     <span class="hero__rate-value" id="rate-counter">0.0%</span>
                     <span class="hero__rate-label">Match Rate (Bank Rows Resolved)</span>
                 </div>
@@ -963,6 +1120,19 @@
                     <div class="summary-card__icon">⚠️</div>
                     <div class="summary-card__value" id="total-exceptions">0</div>
                     <div class="summary-card__label">Unresolved Exceptions</div>
+                </div>
+
+                <div class="summary-card summary-card--value">
+                    <div class="summary-card__icon">💰</div>
+                    <div class="summary-card__value" id="value-pct">0%</div>
+                    <div class="summary-card__label">Value Reconciled</div>
+                    <div class="summary-card__sub" id="value-sub">—</div>
+                </div>
+
+                <div class="summary-card summary-card--review">
+                    <div class="summary-card__icon">👤</div>
+                    <div class="summary-card__value" id="review-count">0</div>
+                    <div class="summary-card__label">Needs Human Review</div>
                 </div>
             </div>
 
@@ -1060,11 +1230,29 @@
                         ⚠️ Unresolved Exceptions
                         <span class="exceptions-header__count" id="exceptions-badge">0</span>
                     </div>
+                    <div class="exception-filters">
+                        <button class="filter-btn active" data-action="all">All</button>
+                        <button class="filter-btn" data-action="needs_human_review">👤 Review</button>
+                        <button class="filter-btn" data-action="likely_bank_fee">💳 Fee</button>
+                        <button class="filter-btn" data-action="investigate_orphan">🔎 Orphan</button>
+                    </div>
                 </div>
                 <div id="exceptions-list"></div>
             </section>
         </main>
+
+        <footer class="footer">
+            <span>AI Finance Controller · Track 04 — Razorpay AI Buildathon 2026</span>
+            <div class="footer__badges">
+                <span class="footer__badge">🧠 Local LLM Qwen2.5-3B</span>
+                <span class="footer__badge">⚙️ Heuristic fallback</span>
+                <span class="footer__badge">🔒 Zero-dependency core</span>
+            </div>
+        </footer>
     </div>
+
+    <!-- Toasts -->
+    <div class="toast-stack" id="toast-stack"></div>
 
     <!-- Detail Panel -->
     <div class="detail-overlay" id="detail-overlay"></div>
@@ -1083,8 +1271,12 @@
 
         let currentFilter = 'all';
         let currentSearch = '';
+        let currentActionFilter = 'all';
         let sortCol = null;
         let sortAsc = true;
+
+        const RING_R = 82;
+        const RING_C = 2 * Math.PI * RING_R;
 
         const TIER_COLORS = {
             exact: 'var(--color-exact)',
@@ -1099,6 +1291,30 @@
             split_payment: 'Split Payment',
             ai_escalated: 'AI Escalated',
         };
+
+        // ============================================================
+        // UI helpers (toasts, compact currency)
+        // ============================================================
+        function showToast(msg, type) {
+            const stack = document.getElementById('toast-stack');
+            if (!stack) return;
+            const t = document.createElement('div');
+            t.className = `toast toast--${type || 'success'}`;
+            t.innerHTML = `<span class="toast__dot"></span><span>${msg}</span>`;
+            stack.appendChild(t);
+            setTimeout(() => {
+                t.classList.add('toast--out');
+                setTimeout(() => t.remove(), 320);
+            }, 4200);
+        }
+
+        function fmtCompact(n) {
+            n = Number(n) || 0;
+            if (n >= 1e7) return (n / 1e7).toFixed(2) + ' Cr';
+            if (n >= 1e5) return (n / 1e5).toFixed(2) + ' L';
+            if (n >= 1e3) return (n / 1e3).toFixed(1) + ' K';
+            return n.toFixed(0);
+        }
 
         // ============================================================
         // Initialization & Server Check
@@ -1224,8 +1440,9 @@
 
                 REPORT = await resp.json();
                 renderReport();
+                showToast(`Reconciliation complete — ${REPORT.summary.match_rate_pct}% matched`, 'success');
             } catch (e) {
-                alert(`Reconciliation error: ${e.message}\nMake sure 'python app.py' is running.`);
+                showToast(`Reconciliation failed: ${e.message}`, 'error');
             } finally {
                 btn.disabled = false;
                 progress.classList.remove('active');
@@ -1262,7 +1479,7 @@
                 checkReady();
                 await runReconciliation();
             } catch (e) {
-                alert(`Could not load sample data: ${e.message}`);
+                showToast(`Could not load sample data: ${e.message}`, 'error');
                 progress.classList.remove('active');
             }
         }
@@ -1280,6 +1497,14 @@
             document.getElementById('total-matched').textContent = s.matched_bank_rows;
             document.getElementById('total-exceptions').textContent = s.total_exceptions;
             document.getElementById('exceptions-badge').textContent = s.total_exceptions;
+
+            // Value + review-queue cards
+            const valuePct = s.bank_value_pct != null ? s.bank_value_pct : s.match_rate_pct;
+            document.getElementById('value-pct').textContent = Number(valuePct).toFixed(1) + '%';
+            document.getElementById('value-sub').textContent = (s.matched_bank_value != null && s.total_bank_value != null)
+                ? `₹${fmtCompact(s.matched_bank_value)} of ₹${fmtCompact(s.total_bank_value)}`
+                : '—';
+            document.getElementById('review-count').textContent = s.needs_human_review || 0;
 
             // Pipeline flow
             document.getElementById('stage-exact-count').textContent = s.tier_counts.exact || 0;
@@ -1415,15 +1640,32 @@
                 return;
             }
 
-            el.innerHTML = REPORT.exceptions.map(e => {
+            const ACTION_LABELS = {
+                needs_human_review: '👤 Review',
+                likely_bank_fee: '💳 Fee',
+                investigate_orphan: '🔎 Orphan',
+            };
+
+            let list = REPORT.exceptions;
+            if (currentActionFilter !== 'all') {
+                list = list.filter(e => (e.recommended_action || 'investigate_orphan') === currentActionFilter);
+            }
+            if (!list.length) {
+                el.innerHTML = `<div class="no-rows">No exceptions match “${currentActionFilter.replace('_', ' ')}” — try another filter.</div>`;
+                return;
+            }
+
+            el.innerHTML = list.map(e => {
                 const srcCls = e.source === 'bank_only' ? 'bank' : 'ledger';
                 const srcLabel = e.source === 'bank_only' ? 'Bank Only' : 'Ledger Only';
+                const action = e.recommended_action || 'investigate_orphan';
                 return `
                     <div class="exception-row">
                         <span class="exception-source exception-source--${srcCls}">${srcLabel}</span>
-                        <span class="amount-cell" style="font-weight:600">₹${e.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+                        <span class="amount-cell" style="font-weight:600">₹${Number(e.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
                         <span style="font-family:var(--font-mono);font-size:0.76rem;color:var(--text-muted)">${e.date}</span>
-                        <span style="font-size:0.8rem;color:var(--text-secondary)">${e.vendor}</span>
+                        <span class="exception-action exception-action--${action}">${ACTION_LABELS[action] || action.replace('_', ' ')}</span>
+                        <span style="font-size:0.78rem;color:var(--text-secondary)">${e.vendor}</span>
                         <span class="ref-cell" style="text-align:right">${e.reference_id || '—'}</span>
                     </div>
                 `;
@@ -1505,9 +1747,9 @@
 
         function exportExceptionsCSV() {
             if (!REPORT || !REPORT.exceptions) return;
-            const rows = [["Source", "Amount", "Date", "Reference ID", "Vendor", "Reason"]];
+            const rows = [["Source", "Amount", "Date", "Reference ID", "Vendor", "Recommended Action", "Reason"]];
             REPORT.exceptions.forEach(e => {
-                rows.push([e.source, e.amount, e.date, e.reference_id, `"${e.vendor}"`, `"${e.reason}"`]);
+                rows.push([e.source, e.amount, e.date, e.reference_id, `"${e.vendor}"`, e.recommended_action || '', `"${e.reason}"`]);
             });
             downloadCSV("unresolved_exceptions.csv", rows);
         }
@@ -1546,6 +1788,15 @@
                 });
             });
 
+            document.querySelectorAll('.exception-filters .filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.exception-filters .filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentActionFilter = btn.dataset.action;
+                    renderExceptions();
+                });
+            });
+
             document.querySelectorAll('th[data-col]').forEach(th => {
                 th.addEventListener('click', () => {
                     const col = th.dataset.col;
@@ -1570,13 +1821,18 @@
 
         function animateCounter(target) {
             const el = document.getElementById('rate-counter');
-            if (!el) return;
+            const bar = document.getElementById('rate-ring-bar');
+            if (!el || !bar) return;
+            bar.style.strokeDasharray = RING_C;
+            bar.style.strokeDashoffset = RING_C;
             const duration = 1000, start = performance.now();
             function step(now) {
                 const elapsed = now - start;
                 const progress = Math.min(elapsed / duration, 1);
-                const current = ((1 - Math.pow(1 - progress, 3)) * target).toFixed(1);
-                el.textContent = `${current}%`;
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = eased * target;
+                el.textContent = `${current.toFixed(1)}%`;
+                bar.style.strokeDashoffset = RING_C * (1 - eased);
                 if (progress < 1) requestAnimationFrame(step);
             }
             requestAnimationFrame(step);

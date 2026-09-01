@@ -56,6 +56,8 @@ python test_web_ui.py              # headless smoke test of the web UI
    - Real-time pipeline flow diagrams and tier breakdown donut charts.
    - Sortable/filterable table with live search and slide-out variance inspector.
    - Instant export to `reconciled_matches.csv`, `unresolved_exceptions.csv`, and audit JSON.
+   - Animated match-rate ring, ₹ value-reconciled & review-queue KPI cards, and an
+     exception list with action chips (Review / Fee / Orphan) you can filter by.
    - Uploads reconcile in <1s via the deterministic Stage 4 — set `APP_USE_LLM=1`
      before `python app.py` to opt into GPU LLM reasoning for ambiguous rows.
    - Headless UI smoke test: `python test_web_ui.py` (boots the server, checks
