@@ -53,3 +53,15 @@ jobs:
 
       - name: Multi-seed sweep smoke test
         run: python run_sweep.py --seeds 3
+
+      - name: Settlement Q&A module smoke test
+        run: |
+          USE_LLM=0 python -c "import settlement_qa; a=settlement_qa.ask_settlement_qa('What happened to TXN100018?', use_llm=False)['answer']; assert len(a)>10; print('Q&A OK')"
+
+      - name: Cash forecaster module smoke test
+        run: |
+          python -c "import cash_forecaster; fc=cash_forecaster.generate_cash_forecast(use_llm=False); assert len(fc['daily_trajectory'])==30; assert fc['projected_end_balance']>=0; print('Forecast OK')"
+
+      - name: Tax-line matcher module smoke test
+        run: |
+          python -c "import tax_matcher; r=tax_matcher.run_tax_line_reconciliation(use_llm=False); assert r['summary']['total_invoices_audited']>0; print('Tax OK:', r['summary'])"

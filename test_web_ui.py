@@ -133,6 +133,30 @@ def main():
               f"{summary['total_bank_rows']} matched ({summary['match_rate_pct']}%), "
               f"{summary['total_exceptions']} exception(s)")
 
+        # 5. Settlement Q&A endpoint
+        qa_payload = {"question": "What happened to T1?", "use_llm": False}
+        status, body = request("/api/qa", qa_payload)
+        assert status == 200, f"/api/qa -> {status}: {body[:200]}"
+        qa_data = json.loads(body)
+        assert "answer" in qa_data and len(qa_data["answer"]) > 10, "empty Q&A answer"
+        print("PASS  POST /api/qa -> answered question with citations")
+
+        # 6. Cash forecaster endpoint
+        fc_payload = {"opening_balance": 1000000, "days_horizon": 14, "use_llm": False}
+        status, body = request("/api/forecast", fc_payload)
+        assert status == 200, f"/api/forecast -> {status}: {body[:200]}"
+        fc_data = json.loads(body)
+        assert len(fc_data["daily_trajectory"]) == 14, "trajectory length mismatch"
+        print(f"PASS  POST /api/forecast -> 14-day trajectory (end bal: Rs. {fc_data['projected_end_balance']:,.2f})")
+
+        # 7. Tax-line matcher endpoint
+        tax_payload = {"use_llm": False}
+        status, body = request("/api/tax-match", tax_payload)
+        assert status == 200, f"/api/tax-match -> {status}: {body[:200]}"
+        tax_data = json.loads(body)
+        assert "tax_lines" in tax_data and "summary" in tax_data, "tax match invalid"
+        print(f"PASS  POST /api/tax-match -> {tax_data['summary']['total_invoices_audited']} invoices audited")
+
         print("-" * 60)
         print("ALL CHECKS PASSED — run `python app.py` and open "
               "http://localhost:8080/dashboard.html to use the UI")

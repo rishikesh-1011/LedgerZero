@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Finance Controller — Multi-Format Reconciliation Platform</title>
-    <meta name="description" content="AI-driven financial controller for multi-source reconciliation. Upload PDF, Word, Excel, CSV, XML, or JSON statements and reconcile with GPU acceleration.">
+    <title>AI Finance Controller — Multi-Module Financial Dashboard</title>
+    <meta name="description" content="AI Financial Controller featuring multi-format reconciliation, Settlement Q&A Agent, Forward Cash Forecaster, and Tax-Line Matcher powered by GPU LLM.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* ========================================================
-           DESIGN SYSTEM — Tokens & Variables
-           ======================================================== */
         :root {
             --bg-primary: #0a0e17;
             --bg-secondary: #111827;
@@ -25,7 +22,6 @@
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
 
-            /* Tier accent colors */
             --color-exact: #34d399;
             --color-exact-bg: rgba(52, 211, 153, 0.12);
             --color-fuzzy: #60a5fa;
@@ -37,18 +33,15 @@
             --color-exception: #f43f5e;
             --color-exception-bg: rgba(244, 63, 94, 0.08);
 
-            /* Gradients */
             --gradient-hero: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #f472b6 100%);
             --gradient-match: linear-gradient(135deg, #34d399 0%, #60a5fa 100%);
             --gradient-accent: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
             --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.14) 0%, transparent 60%);
 
-            /* Spacing */
             --radius: 12px;
             --radius-sm: 8px;
             --radius-xs: 6px;
 
-            /* Fonts */
             --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'JetBrains Mono', 'Consolas', monospace;
         }
@@ -81,847 +74,411 @@
             padding: 0 24px 80px;
         }
 
-        /* ========================================================
-           HERO & GPU BADGE
-           ======================================================== */
-        .hero {
-            text-align: center;
-            padding: 48px 0 32px;
-            position: relative;
-        }
-
-        .hero__badges {
+        /* Nav Tabs */
+        .nav-tabs {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 16px;
+            margin: 24px 0 28px;
             flex-wrap: wrap;
         }
 
-        .hero__badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            border-radius: 99px;
-            background: rgba(14, 165, 233, 0.1);
-            border: 1px solid rgba(14, 165, 233, 0.25);
-            color: #0ea5e9;
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        .hero__badge--gpu {
-            background: rgba(34, 197, 94, 0.1);
-            border-color: rgba(34, 197, 94, 0.3);
-            color: #4ade80;
-        }
-
-        .hero__title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            background: var(--gradient-hero);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 6px;
-        }
-
-        .hero__subtitle {
-            color: var(--text-secondary);
-            font-size: 0.98rem;
-            font-weight: 400;
-        }
-
-        /* ========================================================
-           FILE UPLOAD PORTAL
-           ======================================================== */
-        .upload-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 32px;
-            backdrop-filter: blur(14px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .upload-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 18px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .upload-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .formats-list {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .format-tag {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--radius-xs);
-            padding: 2px 7px;
-            font-size: 0.68rem;
-            font-family: var(--font-mono);
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .upload-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 18px;
-        }
-
-        .dropzone {
-            border: 2px dashed rgba(255, 255, 255, 0.12);
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: var(--radius);
-            padding: 24px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 140px;
-        }
-
-        .dropzone:hover, .dropzone.dragover {
-            border-color: #60a5fa;
-            background: rgba(96, 165, 250, 0.05);
-            transform: translateY(-1px);
-        }
-
-        .dropzone__icon {
-            font-size: 2rem;
-            margin-bottom: 8px;
-        }
-
-        .dropzone__title {
-            font-size: 0.88rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-
-        .dropzone__hint {
-            font-size: 0.74rem;
-            color: var(--text-muted);
-        }
-
-        .dropzone__file-info {
-            display: none;
-            margin-top: 8px;
-            padding: 6px 12px;
-            border-radius: var(--radius-xs);
-            background: rgba(52, 211, 153, 0.1);
-            border: 1px solid rgba(52, 211, 153, 0.3);
-            color: var(--color-exact);
-            font-size: 0.78rem;
-            font-family: var(--font-mono);
-            font-weight: 500;
-        }
-
-        .upload-actions {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
+        .nav-tab-btn {
             display: inline-flex;
             align-items: center;
             gap: 8px;
             padding: 10px 20px;
             border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            color: var(--text-secondary);
             font-family: var(--font-sans);
-            font-size: 0.84rem;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-            border: 1px solid transparent;
-            text-decoration: none;
+            backdrop-filter: blur(10px);
         }
 
-        .btn--primary {
-            background: var(--gradient-accent);
-            color: #fff;
-            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
-        }
-
-        .btn--primary:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
-        }
-
-        .btn--primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn--secondary {
-            background: var(--bg-glass);
-            border-color: var(--border-glass);
-            color: var(--text-secondary);
-        }
-
-        .btn--secondary:hover {
+        .nav-tab-btn:hover {
             border-color: var(--border-glass-hover);
             color: var(--text-primary);
+            transform: translateY(-1px);
         }
 
-        .btn-group {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+        .nav-tab-btn.active {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: #818cf8;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
         }
 
-        /* Running Progress Banner */
-        .reconcile-progress {
+        .tab-content {
             display: none;
-            margin-top: 16px;
-            padding: 14px 18px;
-            border-radius: var(--radius-sm);
-            background: rgba(99, 102, 241, 0.08);
-            border: 1px solid rgba(99, 102, 241, 0.25);
-            align-items: center;
-            gap: 12px;
-            font-size: 0.84rem;
-            color: #a5b4fc;
         }
 
-        .reconcile-progress.active {
-            display: flex;
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
         }
 
-        /* ========================================================
-           SUMMARY METRICS + MATCH-RATE RING
-           ======================================================== */
-        .metrics-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-            margin-bottom: 28px;
-            flex-wrap: wrap;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-        .hero__rate {
-            position: relative;
-            width: 176px;
-            height: 176px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
+        /* Hero */
+        .hero { text-align: center; padding: 32px 0 20px; position: relative; }
+        .hero__badges { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .hero__badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.25); color: #0ea5e9; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+        .hero__badge--gpu { background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); color: #4ade80; }
+        .hero__title { font-size: 2.3rem; font-weight: 800; letter-spacing: -0.03em; background: var(--gradient-hero); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; }
+        .hero__subtitle { color: var(--text-secondary); font-size: 0.95rem; }
 
-        .rate-ring {
-            position: absolute;
-            inset: 0;
-            width: 176px;
-            height: 176px;
-            transform: rotate(-90deg);
-        }
+        /* Upload Portal */
+        .upload-section { background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius); padding: 22px; margin-bottom: 28px; backdrop-filter: blur(14px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+        .upload-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+        .upload-title { font-size: 0.92rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .formats-list { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+        .format-tag { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-xs); padding: 2px 7px; font-size: 0.68rem; font-family: var(--font-mono); color: var(--text-muted); font-weight: 500; }
+        .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+        .dropzone { border: 2px dashed rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.02); border-radius: var(--radius); padding: 20px; text-align: center; cursor: pointer; transition: all 0.25s ease; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 130px; }
+        .dropzone:hover, .dropzone.dragover { border-color: #60a5fa; background: rgba(96, 165, 250, 0.05); transform: translateY(-1px); }
+        .dropzone__icon { font-size: 1.8rem; margin-bottom: 6px; }
+        .dropzone__title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+        .dropzone__hint { font-size: 0.72rem; color: var(--text-muted); }
+        .dropzone__file-info { display: none; margin-top: 6px; padding: 4px 10px; border-radius: var(--radius-xs); background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.3); color: var(--color-exact); font-size: 0.76rem; font-family: var(--font-mono); font-weight: 500; }
+        .upload-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; text-decoration: none; }
+        .btn--primary { background: var(--gradient-accent); color: #fff; box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35); }
+        .btn--primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5); }
+        .btn--primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn--secondary { background: var(--bg-glass); border-color: var(--border-glass); color: var(--text-secondary); }
+        .btn--secondary:hover { border-color: var(--border-glass-hover); color: var(--text-primary); }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
 
-        .rate-ring__track {
-            fill: none;
-            stroke: rgba(255, 255, 255, 0.07);
-            stroke-width: 11;
-        }
+        .reconcile-progress { display: none; margin-top: 14px; padding: 12px 16px; border-radius: var(--radius-sm); background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); align-items: center; gap: 12px; font-size: 0.82rem; color: #a5b4fc; }
+        .reconcile-progress.active { display: flex; }
 
-        .rate-ring__bar {
-            fill: none;
-            stroke: url(#rate-grad);
-            stroke-width: 11;
-            stroke-linecap: round;
-            transition: stroke-dashoffset 1.1s cubic-bezier(0.22, 1, 0.36, 1);
-        }
+        /* Metrics */
+        .metrics-row { display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+        .hero__rate { position: relative; width: 176px; height: 176px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .rate-ring { position: absolute; inset: 0; width: 176px; height: 176px; transform: rotate(-90deg); }
+        .rate-ring__track { fill: none; stroke: rgba(255, 255, 255, 0.07); stroke-width: 11; }
+        .rate-ring__bar { fill: none; stroke: url(#rate-grad); stroke-width: 11; stroke-linecap: round; transition: stroke-dashoffset 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
+        .hero__rate-value { font-size: 2.7rem; font-weight: 900; letter-spacing: -0.04em; background: var(--gradient-match); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; font-variant-numeric: tabular-nums; margin-top: 4px; }
+        .hero__rate-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; margin-top: 6px; letter-spacing: 0.05em; text-transform: uppercase; max-width: 120px; line-height: 1.4; }
 
-        .hero__rate-value {
-            font-size: 2.7rem;
-            font-weight: 900;
-            letter-spacing: -0.04em;
-            background: var(--gradient-match);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
-            font-variant-numeric: tabular-nums;
-            margin-top: 4px;
-        }
+        .summary-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 26px; }
+        .summary-card { background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius); padding: 16px 18px; backdrop-filter: blur(12px); position: relative; overflow: hidden; transition: all 0.2s; }
+        .summary-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--card-accent, var(--gradient-match)); opacity: 0.7; }
+        .summary-card__icon { font-size: 1.3rem; margin-bottom: 6px; }
+        .summary-card__value { font-size: 1.7rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .summary-card__label { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+        .summary-card--exceptions { --card-accent: linear-gradient(90deg, #f43f5e, #fb923c); }
+        .summary-card--exceptions .summary-card__value { color: var(--color-exception); }
+        .summary-card--value { --card-accent: linear-gradient(90deg, #34d399, #0ea5e9); }
+        .summary-card--value .summary-card__value { color: var(--color-exact); }
+        .summary-card--value .summary-card__sub { color: var(--text-secondary); font-size: 0.74rem; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
+        .summary-card--review { --card-accent: linear-gradient(90deg, #f59e0b, #f97316); }
+        .summary-card--review .summary-card__value { color: #fbbf24; }
 
-        .hero__rate-label {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            margin-top: 6px;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            max-width: 120px;
-            line-height: 1.4;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 14px;
-            margin-bottom: 28px;
-        }
-
-        .summary-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius);
-            padding: 18px 20px;
-            backdrop-filter: blur(12px);
-            transition: all 0.25s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .summary-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--card-accent, var(--gradient-match));
-            opacity: 0.7;
-        }
-
-        .summary-card:hover {
-            border-color: var(--border-glass-hover);
-            transform: translateY(-2px);
-        }
-
-        .summary-card__icon {
-            font-size: 1.4rem;
-            margin-bottom: 8px;
-        }
-
-        .summary-card__value {
-            font-size: 1.9rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .summary-card__label {
-            font-size: 0.74rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 2px;
-        }
-
-        .summary-card--exceptions {
-            --card-accent: linear-gradient(90deg, #f43f5e, #fb923c);
-        }
-        .summary-card--exceptions .summary-card__value {
-            color: var(--color-exception);
-        }
-
-        .summary-card--value {
-            --card-accent: linear-gradient(90deg, #34d399, #0ea5e9);
-        }
-        .summary-card--value .summary-card__value {
-            color: var(--color-exact);
-        }
-        .summary-card--value .summary-card__sub {
-            color: var(--text-secondary);
-            font-size: 0.76rem;
-            font-weight: 600;
-            margin-top: 6px;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .summary-card--review {
-            --card-accent: linear-gradient(90deg, #f59e0b, #f97316);
-        }
-        .summary-card--review .summary-card__value {
-            color: #fbbf24;
-        }
-
-        /* ========================================================
-           PIPELINE FLOW
-           ======================================================== */
-        .pipeline {
-            background: var(--bg-card);
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius);
-            padding: 24px 28px;
-            margin-bottom: 28px;
-            backdrop-filter: blur(12px);
-        }
-
-        .pipeline__title {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 18px;
-        }
-
-        .pipeline__flow {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            overflow-x: auto;
-            padding-bottom: 6px;
-        }
-
-        .pipeline__stage {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 120px;
-            flex-shrink: 0;
-        }
-
-        .pipeline__stage-circle {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.25rem;
-            border: 2px solid;
-            margin-bottom: 8px;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .pipeline__stage-name {
-            font-size: 0.72rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-secondary);
-        }
-
-        .pipeline__stage-label {
-            font-size: 0.68rem;
-            color: var(--text-muted);
-            margin-top: 1px;
-        }
-
-        .pipeline__arrow {
-            flex-shrink: 0;
-            width: 40px;
-            height: 2px;
-            background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.25), rgba(255,255,255,0.1));
-            position: relative;
-            margin-bottom: 26px;
-        }
-
-        .pipeline__arrow::after {
-            content: '›';
-            position: absolute;
-            right: -5px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
+        /* Pipeline */
+        .pipeline { background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius); padding: 22px 26px; margin-bottom: 26px; backdrop-filter: blur(12px); }
+        .pipeline__title { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+        .pipeline__flow { display: flex; align-items: center; justify-content: space-between; overflow-x: auto; padding-bottom: 6px; }
+        .pipeline__stage { display: flex; flex-direction: column; align-items: center; min-width: 110px; flex-shrink: 0; }
+        .pipeline__stage-circle { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.15rem; border: 2px solid; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+        .pipeline__stage-name { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); }
+        .pipeline__stage-label { font-size: 0.66rem; color: var(--text-muted); }
+        .pipeline__arrow { flex-shrink: 0; width: 36px; height: 2px; background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.25), rgba(255,255,255,0.1)); position: relative; margin-bottom: 22px; }
+        .pipeline__arrow::after { content: '›'; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1rem; }
         .pipeline__stage--exact .pipeline__stage-circle { border-color: var(--color-exact); color: var(--color-exact); background: var(--color-exact-bg); }
         .pipeline__stage--fuzzy .pipeline__stage-circle { border-color: var(--color-fuzzy); color: var(--color-fuzzy); background: var(--color-fuzzy-bg); }
         .pipeline__stage--split .pipeline__stage-circle { border-color: var(--color-split); color: var(--color-split); background: var(--color-split-bg); }
         .pipeline__stage--ai .pipeline__stage-circle { border-color: var(--color-ai); color: var(--color-ai); background: var(--color-ai-bg); }
         .pipeline__stage--exc .pipeline__stage-circle { border-color: var(--color-exception); color: var(--color-exception); background: var(--color-exception-bg); }
 
-        /* ========================================================
-           DONUT & MATCHES TABLE
-           ======================================================== */
-        .content-grid {
-            display: grid;
-            grid-template-columns: 310px 1fr;
-            gap: 20px;
-            margin-bottom: 28px;
-        }
+        /* Donut & Tables */
+        .content-grid { display: grid; grid-template-columns: 290px 1fr; gap: 18px; margin-bottom: 26px; }
+        .chart-card { background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius); padding: 22px; backdrop-filter: blur(12px); display: flex; flex-direction: column; align-items: center; }
+        .chart-card__title { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 18px; align-self: flex-start; }
+        .donut-container { position: relative; width: 180px; height: 180px; }
+        .donut-container svg { transform: rotate(-90deg); }
+        .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .donut-center__value { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); }
+        .donut-center__label { font-size: 0.66rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .chart-legend { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; width: 100%; }
+        .chart-legend__item { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; }
+        .chart-legend__dot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
+        .chart-legend__name { color: var(--text-secondary); flex: 1; }
+        .chart-legend__count { font-weight: 600; font-family: var(--font-mono); font-size: 0.76rem; }
 
-        .chart-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius);
-            padding: 24px;
-            backdrop-filter: blur(12px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .table-card { background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius); backdrop-filter: blur(12px); overflow: hidden; }
+        .table-card__header { padding: 16px 20px 0; display: flex; align-items: center; justify-content: space-between; }
+        .table-card__title { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+        .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .toolbar__search-wrap { position: relative; flex: 1; min-width: 180px; }
+        .toolbar__search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.82rem; pointer-events: none; }
+        .toolbar__search { width: 100%; padding: 7px 12px 7px 32px; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font-sans); font-size: 0.8rem; outline: none; transition: border-color 0.2s; }
+        .toolbar__search:focus { border-color: rgba(96, 165, 250, 0.4); }
 
-        .chart-card__title {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 20px;
-            align-self: flex-start;
-        }
-
-        .donut-container {
-            position: relative;
-            width: 190px;
-            height: 190px;
-        }
-
-        .donut-container svg {
-            transform: rotate(-90deg);
-        }
-
-        .donut-center {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .donut-center__value {
-            font-size: 1.7rem;
-            font-weight: 800;
-            color: var(--text-primary);
-        }
-
-        .donut-center__label {
-            font-size: 0.68rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .chart-legend {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 20px;
-            width: 100%;
-        }
-
-        .chart-legend__item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-        }
-
-        .chart-legend__dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 3px;
-            flex-shrink: 0;
-        }
-
-        .chart-legend__name {
-            color: var(--text-secondary);
-            flex: 1;
-        }
-
-        .chart-legend__count {
-            font-weight: 600;
-            font-variant-numeric: tabular-nums;
-            font-family: var(--font-mono);
-            font-size: 0.78rem;
-        }
-
-        /* Table Card */
-        .table-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius);
-            backdrop-filter: blur(12px);
-            overflow: hidden;
-        }
-
-        .table-card__header {
-            padding: 18px 20px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .table-card__title {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-
-        .toolbar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 14px;
-            flex-wrap: wrap;
-        }
-
-        .toolbar__search-wrap {
-            position: relative;
-            flex: 1;
-            min-width: 180px;
-        }
-
-        .toolbar__search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            pointer-events: none;
-        }
-
-        .toolbar__search {
-            width: 100%;
-            padding: 8px 12px 8px 34px;
-            background: var(--bg-glass);
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            font-family: var(--font-sans);
-            font-size: 0.82rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .toolbar__search:focus {
-            border-color: rgba(96, 165, 250, 0.4);
-        }
-
-        .filter-btn {
-            padding: 7px 14px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-glass);
-            background: var(--bg-glass);
-            color: var(--text-secondary);
-            font-family: var(--font-sans);
-            font-size: 0.74rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: capitalize;
-        }
-
-        .filter-btn:hover {
-            border-color: var(--border-glass-hover);
-            color: var(--text-primary);
-        }
-
-        .filter-btn.active {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .filter-btn.active[data-tier="all"] { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+        .filter-btn { padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: var(--bg-glass); color: var(--text-secondary); font-family: var(--font-sans); font-size: 0.72rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .filter-btn:hover { border-color: var(--border-glass-hover); color: var(--text-primary); }
+        .filter-btn.active { color: var(--text-primary); font-weight: 600; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
         .filter-btn.active[data-tier="exact"] { background: var(--color-exact-bg); border-color: var(--color-exact); color: var(--color-exact); }
         .filter-btn.active[data-tier="fuzzy"] { background: var(--color-fuzzy-bg); border-color: var(--color-fuzzy); color: var(--color-fuzzy); }
         .filter-btn.active[data-tier="split_payment"] { background: var(--color-split-bg); border-color: var(--color-split); color: var(--color-split); }
         .filter-btn.active[data-tier="ai_escalated"] { background: var(--color-ai-bg); border-color: var(--color-ai); color: var(--color-ai); }
 
-        .table-scroll {
-            overflow-x: auto;
-            max-height: 520px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            padding: 10px 14px;
-            text-align: left;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            border-bottom: 1px solid var(--border-glass);
-            cursor: pointer;
-            user-select: none;
-            white-space: nowrap;
-            position: sticky;
-            top: 0;
-            background: #111827;
-            z-index: 2;
-        }
-
-        th:hover { color: var(--text-secondary); }
-        th .sort-indicator { margin-left: 4px; opacity: 0.4; font-size: 0.65rem; }
-        th.sorted .sort-indicator { opacity: 1; color: #60a5fa; }
-
-        td {
-            padding: 9px 14px;
-            font-size: 0.8rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            white-space: nowrap;
-        }
-
+        .table-scroll { overflow-x: auto; max-height: 480px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 9px 12px; text-align: left; font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border-glass); cursor: pointer; user-select: none; white-space: nowrap; position: sticky; top: 0; background: #111827; z-index: 2; }
+        td { padding: 8px 12px; font-size: 0.78rem; border-bottom: 1px solid rgba(255, 255, 255, 0.03); white-space: nowrap; }
         tbody tr { transition: background 0.15s; }
         tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
 
-        .tier-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px 8px;
-            border-radius: var(--radius-xs);
-            font-size: 0.68rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
+        .tier-badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: var(--radius-xs); font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
         .tier-badge--exact { background: var(--color-exact-bg); color: var(--color-exact); }
         .tier-badge--fuzzy { background: var(--color-fuzzy-bg); color: var(--color-fuzzy); }
         .tier-badge--split_payment { background: var(--color-split-bg); color: var(--color-split); }
         .tier-badge--ai_escalated { background: var(--color-ai-bg); color: var(--color-ai); }
 
-        .amount-cell { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500; }
-        .delta-cell { font-family: var(--font-mono); font-size: 0.76rem; }
+        .amount-cell { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; }
+        .delta-cell { font-family: var(--font-mono); font-size: 0.74rem; }
         .delta-cell--zero { color: var(--color-exact); }
         .delta-cell--small { color: var(--color-fuzzy); }
         .delta-cell--large { color: var(--color-ai); }
-        .ref-cell { font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-muted); }
-        .reason-cell { max-width: 280px; white-space: normal; font-size: 0.76rem; color: var(--text-secondary); line-height: 1.35; }
+        .ref-cell { font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-muted); }
+        .reason-cell { max-width: 260px; white-space: normal; font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35; }
+
+        /* Exceptions */
+        .exceptions-section { margin-top: 26px; }
+        .exceptions-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .exceptions-header__title { font-size: 0.95rem; font-weight: 700; color: var(--color-exception); display: flex; align-items: center; gap: 8px; }
+        .exceptions-header__count { background: var(--color-exception-bg); color: var(--color-exception); padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 600; }
+        .exception-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+        .exception-row { background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 11px 16px; margin-bottom: 8px; display: grid; grid-template-columns: 95px 115px 90px 150px 1fr 120px; gap: 12px; align-items: center; transition: all 0.2s; }
+        .exception-row:hover { border-color: rgba(244, 63, 94, 0.25); background: rgba(244, 63, 94, 0.02); }
+        .exception-source { display: inline-flex; align-items: center; font-size: 0.66rem; font-weight: 600; text-transform: uppercase; padding: 2px 7px; border-radius: var(--radius-xs); }
+        .exception-source--bank { background: rgba(251, 146, 60, 0.1); color: #fb923c; }
+        .exception-source--ledger { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
+        .exception-action { display: inline-flex; align-items: center; font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; }
+        .exception-action--needs_human_review { background: rgba(245, 158, 11, 0.12); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .exception-action--likely_bank_fee { background: rgba(96, 165, 250, 0.12); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); }
+        .exception-action--investigate_orphan { background: rgba(244, 63, 94, 0.1); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.25); }
 
         /* ========================================================
-           EXCEPTIONS PANEL
+           SETTLEMENT Q&A TAB
            ======================================================== */
-        .exceptions-section {
-            margin-top: 28px;
+        .qa-container {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 20px;
         }
 
-        .exceptions-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 14px;
-        }
-
-        .exceptions-header__title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--color-exception);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .exceptions-header__count {
-            background: var(--color-exception-bg);
-            color: var(--color-exception);
-            padding: 2px 9px;
-            border-radius: 99px;
-            font-size: 0.74rem;
-            font-weight: 600;
-        }
-
-        .exception-row {
+        .qa-chat-card {
             background: var(--bg-card);
             border: 1px solid var(--border-glass);
-            border-radius: var(--radius-sm);
-            padding: 12px 18px;
-            margin-bottom: 8px;
-            display: grid;
-            grid-template-columns: 100px 120px 95px 160px 1fr 130px;
-            gap: 14px;
+            border-radius: var(--radius);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+            backdrop-filter: blur(12px);
+        }
+
+        .qa-messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding-right: 6px;
+        }
+
+        .qa-msg {
+            display: flex;
+            gap: 12px;
+            font-size: 0.84rem;
+            line-height: 1.5;
+        }
+
+        .qa-msg__avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
             align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .qa-msg--user .qa-msg__avatar {
+            background: rgba(96, 165, 250, 0.2);
+        }
+
+        .qa-msg--agent .qa-msg__avatar {
+            background: rgba(168, 85, 247, 0.25);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+        }
+
+        .qa-msg__body {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            max-width: 88%;
+        }
+
+        .qa-msg--user .qa-msg__body {
+            background: rgba(96, 165, 250, 0.08);
+            border-color: rgba(96, 165, 250, 0.25);
+        }
+
+        .qa-msg__citations {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .qa-citation {
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        .qa-input-bar {
+            margin-top: 16px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .qa-input {
+            flex: 1;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .qa-input:focus {
+            border-color: #818cf8;
+        }
+
+        .qa-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .qa-prompts-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius);
+            padding: 20px;
+            backdrop-filter: blur(12px);
+        }
+
+        .qa-prompts-card__title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
+        }
+
+        .qa-prompt-chip {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-sm);
+            padding: 9px 12px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            cursor: pointer;
             transition: all 0.2s;
         }
 
-        .exception-row:hover {
-            border-color: rgba(244, 63, 94, 0.25);
-            background: rgba(244, 63, 94, 0.02);
+        .qa-prompt-chip:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: var(--text-primary);
+            transform: translateX(2px);
         }
 
-        .exception-source {
-            display: inline-flex;
-            align-items: center;
-            font-size: 0.68rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            padding: 3px 8px;
-            border-radius: var(--radius-xs);
+        /* ========================================================
+           CASH FORECASTER TAB
+           ======================================================== */
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
         }
 
-        .exception-source--bank { background: rgba(251, 146, 60, 0.1); color: #fb923c; }
-        .exception-source--ledger { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
+        .forecast-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius);
+            padding: 24px;
+            backdrop-filter: blur(12px);
+        }
 
-        .exception-filters {
+        .forecast-controls {
             display: flex;
-            gap: 6px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
-        .exception-filters .filter-btn {
-            font-size: 0.72rem;
-            padding: 5px 10px;
-        }
-        .exception-action {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.66rem;
-            font-weight: 600;
-            padding: 3px 9px;
-            border-radius: 99px;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            white-space: nowrap;
-            width: fit-content;
-        }
-        .exception-action--needs_human_review {
-            background: rgba(245, 158, 11, 0.12);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-        .exception-action--likely_bank_fee {
-            background: rgba(96, 165, 250, 0.12);
-            color: #60a5fa;
-            border: 1px solid rgba(96, 165, 250, 0.3);
-        }
-        .exception-action--investigate_orphan {
-            background: rgba(244, 63, 94, 0.1);
-            color: #fb7185;
-            border: 1px solid rgba(244, 63, 94, 0.25);
+
+        .chart-svg-container {
+            width: 100%;
+            height: 240px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-glass);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
         }
 
-        /* Detail slide-out */
+        /* ========================================================
+           TAX-LINE MATCHER TAB
+           ======================================================== */
+        .tax-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .tax-status-badge {
+            display: inline-flex;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .tax-status-badge--COMPLIANT { background: rgba(52, 211, 153, 0.12); color: #34d399; }
+        .tax-status-badge--REQUIRES_REVIEW { background: rgba(245, 158, 11, 0.12); color: #fbbf24; }
+
+        /* Slide-out */
         .detail-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .detail-overlay.open { opacity: 1; pointer-events: all; }
         .detail-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 460px; max-width: 90vw; background: var(--bg-secondary); border-left: 1px solid var(--border-glass); z-index: 101; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; padding: 26px; }
@@ -934,41 +491,11 @@
         .detail-field__value { color: var(--text-primary); font-family: var(--font-mono); font-weight: 500; }
         .detail-reason { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 12px; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45; }
 
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
+        .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        /* Toasts */
-        .toast-stack {
-            position: fixed;
-            top: 18px;
-            right: 18px;
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-width: 360px;
-        }
-        .toast {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 12px 14px;
-            border-radius: var(--radius-sm);
-            background: rgba(17, 24, 39, 0.95);
-            border: 1px solid var(--border-glass);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-            font-size: 0.84rem;
-            color: var(--text-primary);
-            animation: toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-            backdrop-filter: blur(10px);
-        }
+
+        .toast-stack { position: fixed; top: 18px; right: 18px; z-index: 200; display: flex; flex-direction: column; gap: 10px; max-width: 360px; }
+        .toast { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: var(--radius-sm); background: rgba(17, 24, 39, 0.95); border: 1px solid var(--border-glass); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); font-size: 0.84rem; color: var(--text-primary); animation: toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1); backdrop-filter: blur(10px); }
         .toast--success { border-color: rgba(52, 211, 153, 0.4); }
         .toast--success .toast__dot { background: #34d399; box-shadow: 0 0 10px #34d399; }
         .toast--error { border-color: rgba(244, 63, 94, 0.45); }
@@ -977,33 +504,18 @@
         @keyframes toast-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
         .toast--out { opacity: 0; transform: translateX(20px); transition: all 0.3s; }
 
-        /* Footer */
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-glass);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            font-size: 0.74rem;
-            color: var(--text-muted);
-        }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-glass); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 0.74rem; color: var(--text-muted); }
         .footer__badges { display: flex; gap: 8px; flex-wrap: wrap; }
         .footer__badge { padding: 3px 10px; border-radius: 99px; border: 1px solid var(--border-glass); background: var(--bg-glass); }
-
         .no-rows { text-align: center; padding: 36px 20px; color: var(--text-muted); font-size: 0.85rem; }
 
         @media (max-width: 960px) {
-            .upload-grid, .content-grid { grid-template-columns: 1fr; }
+            .upload-grid, .content-grid, .qa-container { grid-template-columns: 1fr; }
             .summary-grid { grid-template-columns: repeat(3, 1fr); }
             .exception-row { grid-template-columns: 90px 110px 90px 150px 1fr; }
         }
-
         @media (max-width: 620px) {
             .summary-grid { grid-template-columns: repeat(2, 1fr); }
-            .hero__rate { transform: scale(0.9); }
             .exception-row { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
@@ -1016,72 +528,80 @@
                 <div class="hero__badge">◆ Track 04 — AI Finance Controller</div>
                 <div class="hero__badge hero__badge--gpu" id="gpu-badge">⚡ RTX 5070 GPU Accelerated</div>
             </div>
-            <h1 class="hero__title">Universal Reconciliation Platform</h1>
-            <p class="hero__subtitle">Upload bank & ledger statements across PDF, Word, Excel, CSV, XML, or JSON</p>
+            <h1 class="hero__title">Universal Financial Intelligence Platform</h1>
+            <p class="hero__subtitle">Multi-source statement reconciliation, settlement Q&A agent, forward cash forecasting, and tax-line matching</p>
         </header>
 
-        <!-- UPLOAD SECTION -->
-        <section class="upload-section">
-            <div class="upload-header">
-                <div class="upload-title">📁 Statement Ingestion & Reconciliation</div>
-                <div class="formats-list">
-                    <span style="font-size:0.72rem;color:var(--text-muted);margin-right:4px">Supported:</span>
-                    <span class="format-tag">.PDF</span>
-                    <span class="format-tag">.DOCX</span>
-                    <span class="format-tag">.XLSX</span>
-                    <span class="format-tag">.CSV</span>
-                    <span class="format-tag">.XML</span>
-                    <span class="format-tag">.JSON</span>
-                </div>
-            </div>
+        <!-- TOP NAVIGATION TABS -->
+        <nav class="nav-tabs" role="tablist">
+            <button class="nav-tab-btn active" data-tab="tab-reconcile" role="tab">⚡ Reconciliation Hub</button>
+            <button class="nav-tab-btn" data-tab="tab-qa" role="tab">💬 Settlement Q&A Agent</button>
+            <button class="nav-tab-btn" data-tab="tab-forecast" role="tab">📈 Forward Cash Forecaster</button>
+            <button class="nav-tab-btn" data-tab="tab-tax" role="tab">🧾 Tax-Line Matcher (GST & TDS)</button>
+        </nav>
 
-            <div class="upload-grid">
-                <!-- Bank Statement Dropzone -->
-                <div class="dropzone" id="bank-dropzone">
-                    <input type="file" id="bank-file-input" style="display:none" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.tsv,.txt,.xml,.json">
-                    <div class="dropzone__icon">🏦</div>
-                    <div class="dropzone__title">Bank Statement / Feed</div>
-                    <div class="dropzone__hint">Drag & drop or click to upload (PDF, Word, Excel, CSV, XML)</div>
-                    <div class="dropzone__file-info" id="bank-file-name"></div>
+        <!-- ========================================================
+             TAB 1: RECONCILIATION HUB
+             ======================================================== -->
+        <div class="tab-content active" id="tab-reconcile" role="tabpanel">
+            <!-- UPLOAD SECTION -->
+            <section class="upload-section">
+                <div class="upload-header">
+                    <div class="upload-title">📁 Statement Ingestion & Reconciliation</div>
+                    <div class="formats-list">
+                        <span style="font-size:0.72rem;color:var(--text-muted);margin-right:4px">Supported:</span>
+                        <span class="format-tag">.PDF</span>
+                        <span class="format-tag">.DOCX</span>
+                        <span class="format-tag">.XLSX</span>
+                        <span class="format-tag">.CSV</span>
+                        <span class="format-tag">.XML</span>
+                        <span class="format-tag">.JSON</span>
+                    </div>
                 </div>
 
-                <!-- Company Ledger Dropzone -->
-                <div class="dropzone" id="ledger-dropzone">
-                    <input type="file" id="ledger-file-input" style="display:none" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.tsv,.txt,.xml,.json">
-                    <div class="dropzone__icon">📒</div>
-                    <div class="dropzone__title">Company Ledger / ERP Export</div>
-                    <div class="dropzone__hint">Drag & drop or click to upload (PDF, Word, Excel, CSV, XML)</div>
-                    <div class="dropzone__file-info" id="ledger-file-name"></div>
-                </div>
-            </div>
+                <div class="upload-grid">
+                    <div class="dropzone" id="bank-dropzone">
+                        <input type="file" id="bank-file-input" style="display:none" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.tsv,.txt,.xml,.json">
+                        <div class="dropzone__icon">🏦</div>
+                        <div class="dropzone__title">Bank Statement / Feed</div>
+                        <div class="dropzone__hint">Drag & drop or click to upload (PDF, Word, Excel, CSV, XML)</div>
+                        <div class="dropzone__file-info" id="bank-file-name"></div>
+                    </div>
 
-            <div class="upload-actions">
-                <div class="btn-group">
-                    <button class="btn btn--primary" id="run-reconcile-btn" disabled>
-                        <span>▶ Run Reconciliation (GPU)</span>
-                    </button>
-                    <button class="btn btn--secondary" id="load-sample-btn">
-                        <span>⚡ Load Sample Data</span>
-                    </button>
+                    <div class="dropzone" id="ledger-dropzone">
+                        <input type="file" id="ledger-file-input" style="display:none" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.tsv,.txt,.xml,.json">
+                        <div class="dropzone__icon">📒</div>
+                        <div class="dropzone__title">Company Ledger / ERP Export</div>
+                        <div class="dropzone__hint">Drag & drop or click to upload (PDF, Word, Excel, CSV, XML)</div>
+                        <div class="dropzone__file-info" id="ledger-file-name"></div>
+                    </div>
                 </div>
-                <div class="btn-group">
-                    <button class="btn btn--secondary" id="export-matches-btn" title="Download matched rows as CSV">
-                        <span>📥 Export Matches</span>
-                    </button>
-                    <button class="btn btn--secondary" id="export-exceptions-btn" title="Download unresolved exceptions as CSV">
-                        <span>📥 Export Exceptions</span>
-                    </button>
+
+                <div class="upload-actions">
+                    <div class="btn-group">
+                        <button class="btn btn--primary" id="run-reconcile-btn" disabled>
+                            <span>▶ Run Reconciliation (GPU)</span>
+                        </button>
+                        <button class="btn btn--secondary" id="load-sample-btn">
+                            <span>⚡ Load Sample Data</span>
+                        </button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn--secondary" id="export-matches-btn" title="Download matched rows as CSV">
+                            <span>📥 Export Matches</span>
+                        </button>
+                        <button class="btn btn--secondary" id="export-exceptions-btn" title="Download unresolved exceptions as CSV">
+                            <span>📥 Export Exceptions</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="reconcile-progress" id="reconcile-progress">
-                <div class="spinner"></div>
-                <span id="reconcile-status-text">Parsing documents and executing 5-stage GPU reconciliation...</span>
-            </div>
-        </section>
+                <div class="reconcile-progress" id="reconcile-progress">
+                    <div class="spinner"></div>
+                    <span id="reconcile-status-text">Parsing documents and executing 5-stage GPU reconciliation...</span>
+                </div>
+            </section>
 
-        <!-- DASHBOARD CONTAINER -->
-        <main id="dashboard-content">
             <!-- Rate Counter & KPI Cards -->
             <div class="metrics-row">
                 <div class="hero__rate">
@@ -1121,14 +641,12 @@
                     <div class="summary-card__value" id="total-exceptions">0</div>
                     <div class="summary-card__label">Unresolved Exceptions</div>
                 </div>
-
                 <div class="summary-card summary-card--value">
                     <div class="summary-card__icon">💰</div>
                     <div class="summary-card__value" id="value-pct">0%</div>
                     <div class="summary-card__label">Value Reconciled</div>
                     <div class="summary-card__sub" id="value-sub">—</div>
                 </div>
-
                 <div class="summary-card summary-card--review">
                     <div class="summary-card__icon">👤</div>
                     <div class="summary-card__value" id="review-count">0</div>
@@ -1177,7 +695,7 @@
                 <div class="chart-card">
                     <div class="chart-card__title">Match Tier Breakdown</div>
                     <div class="donut-container" id="donut-box">
-                        <svg viewBox="0 0 200 200" width="190" height="190" id="donut-svg"></svg>
+                        <svg viewBox="0 0 200 200" width="180" height="180" id="donut-svg"></svg>
                         <div class="donut-center">
                             <span class="donut-center__value" id="donut-total">0</span>
                             <span class="donut-center__label">Matches</span>
@@ -1190,7 +708,7 @@
                     <div class="table-card__header">
                         <div class="table-card__title">Reconciled Matches</div>
                     </div>
-                    <div style="padding: 14px 20px 0">
+                    <div style="padding: 12px 18px 0">
                         <div class="toolbar">
                             <div class="toolbar__search-wrap">
                                 <span class="toolbar__search-icon">🔍</span>
@@ -1239,7 +757,135 @@
                 </div>
                 <div id="exceptions-list"></div>
             </section>
-        </main>
+        </div>
+
+        <!-- ========================================================
+             TAB 2: SETTLEMENT Q&A AGENT
+             ======================================================== -->
+        <div class="tab-content" id="tab-qa" role="tabpanel">
+            <div class="qa-container">
+                <div class="qa-chat-card">
+                    <div style="font-size:0.92rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+                        <span>💬 Settlement Q&A Agent</span>
+                        <span style="font-size:0.7rem;background:rgba(168,85,247,0.15);color:#c084fc;padding:2px 8px;border-radius:99px;font-family:var(--font-mono)">Qwen2.5-3B GPU</span>
+                    </div>
+                    <div class="qa-messages" id="qa-messages">
+                        <div class="qa-msg qa-msg--agent">
+                            <div class="qa-msg__avatar">🤖</div>
+                            <div class="qa-msg__body">
+                                <strong>Hello! I am your Settlement Q&A Agent.</strong><br>
+                                I can answer questions about specific transactions, settlement delays, unlogged bank fees, or exception root causes with grounded data citations.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="qa-input-bar">
+                        <input type="text" class="qa-input" id="qa-input" placeholder="Ask about transaction TXN100018, vendor delays, or bank fees…">
+                        <button class="btn btn--primary" id="qa-send-btn">Ask Agent</button>
+                    </div>
+                </div>
+
+                <div class="qa-sidebar">
+                    <div class="qa-prompts-card">
+                        <div class="qa-prompts-card__title">Suggested Inquiries</div>
+                        <button class="qa-prompt-chip" data-q="What happened to TXN100018?">🔎 What happened to TXN100018?</button>
+                        <button class="qa-prompt-chip" data-q="List and audit all unlogged bank charges">💳 Audit all unlogged bank charges</button>
+                        <button class="qa-prompt-chip" data-q="Why are transactions deferred to human review?">👤 Explain the human review queue</button>
+                        <button class="qa-prompt-chip" data-q="Summarize BlueOne Logistics reconciliation status">🚚 Summarize BlueOne Logistics</button>
+                        <button class="qa-prompt-chip" data-q="Give me an executive summary of our reconciliation health">📊 Executive summary of match health</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================
+             TAB 3: FORWARD CASH FORECASTER
+             ======================================================== -->
+        <div class="tab-content" id="tab-forecast" role="tabpanel">
+            <div class="forecast-grid">
+                <div class="forecast-card">
+                    <div class="forecast-controls">
+                        <div>
+                            <h2 style="font-size:1.1rem;font-weight:700">Forward Liquidity & Cash Runway Forecaster</h2>
+                            <p style="font-size:0.8rem;color:var(--text-muted)">Quantitative lead-time model & LLM treasury commentary</p>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <label style="font-size:0.8rem;color:var(--text-secondary)">Starting Cash (₹):</label>
+                            <input type="number" id="forecast-opening-input" value="5000000" style="padding:6px 12px;background:var(--bg-glass);border:1px solid var(--border-glass);border-radius:var(--radius-sm);color:#fff;font-family:var(--font-mono);font-size:0.82rem;width:140px;">
+                            <button class="btn btn--primary" id="run-forecast-btn">📈 Update Forecast</button>
+                        </div>
+                    </div>
+
+                    <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:var(--radius-sm);padding:16px;margin-bottom:20px;">
+                        <div style="font-size:0.8rem;font-weight:700;color:#a5b4fc;margin-bottom:6px">🧠 Executive Liquidity Analysis (Qwen 3B)</div>
+                        <div id="forecast-commentary-text" style="font-size:0.84rem;color:var(--text-primary);line-height:1.5">Loading forecast...</div>
+                    </div>
+
+                    <div class="table-card" style="margin-top:20px;">
+                        <div class="table-card__header"><div class="table-card__title">30-Day Cash Trajectory Timeline</div></div>
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Day</th>
+                                        <th>Date</th>
+                                        <th>Inflows (₹)</th>
+                                        <th>Outflows (₹)</th>
+                                        <th>Net Delta (₹)</th>
+                                        <th>Projected Cash Position (₹)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="forecast-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================
+             TAB 4: TAX-LINE MATCHER (GST & TDS)
+             ======================================================== -->
+        <div class="tab-content" id="tab-tax" role="tabpanel">
+            <div class="tax-grid">
+                <div class="forecast-card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                        <div>
+                            <h2 style="font-size:1.1rem;font-weight:700">Tax-Line & Withholding Reconciler (GST & TDS)</h2>
+                            <p style="font-size:0.8rem;color:var(--text-muted)">Statutory withholding verification (TDS 1%/2%/10%, GST 5%/12%/18%/28%)</p>
+                        </div>
+                        <button class="btn btn--primary" id="run-tax-btn">🧾 Run Tax Audit</button>
+                    </div>
+
+                    <div style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:var(--radius-sm);padding:16px;margin-bottom:20px;">
+                        <div style="font-size:0.8rem;font-weight:700;color:#6ee7b7;margin-bottom:6px">🧠 Statutory Compliance & Audit Brief (Qwen 3B)</div>
+                        <div id="tax-commentary-text" style="font-size:0.84rem;color:var(--text-primary);line-height:1.5">Loading tax audit...</div>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-card__header"><div class="table-card__title">Tax Line-Item Ledger</div></div>
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Reference ID</th>
+                                        <th>Vendor</th>
+                                        <th>Date</th>
+                                        <th>Gross Invoice (₹)</th>
+                                        <th>Bank Net (₹)</th>
+                                        <th>Tax Rate / Sec</th>
+                                        <th>Tax Amount (₹)</th>
+                                        <th>Status</th>
+                                        <th>Audit Note</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tax-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <footer class="footer">
             <span>AI Finance Controller · Track 04 — Razorpay AI Buildathon 2026</span>
@@ -1292,9 +938,6 @@
             ai_escalated: 'AI Escalated',
         };
 
-        // ============================================================
-        // UI helpers (toasts, compact currency)
-        // ============================================================
         function showToast(msg, type) {
             const stack = document.getElementById('toast-stack');
             if (!stack) return;
@@ -1316,12 +959,13 @@
             return n.toFixed(0);
         }
 
-        // ============================================================
-        // Initialization & Server Check
-        // ============================================================
         async function init() {
+            wireTabs();
             wireDropzones();
             wireButtons();
+            wireQA();
+            wireForecast();
+            wireTax();
 
             try {
                 const resp = await fetch('reconciliation_report.json');
@@ -1329,11 +973,8 @@
                     REPORT = await resp.json();
                     renderReport();
                 }
-            } catch (e) {
-                console.log('No default report found, ready for upload.');
-            }
+            } catch (e) {}
 
-            // Check API GPU status
             try {
                 const statusResp = await fetch('/api/status');
                 if (statusResp.ok) {
@@ -1346,7 +987,188 @@
         }
 
         // ============================================================
-        // File Dropzones & Upload Handlers
+        // Navigation Tabs
+        // ============================================================
+        function wireTabs() {
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                    btn.classList.add('active');
+                    const targetId = btn.dataset.tab;
+                    document.getElementById(targetId).classList.add('active');
+
+                    if (targetId === 'tab-forecast') loadForecast();
+                    if (targetId === 'tab-tax') loadTaxMatch();
+                });
+            });
+        }
+
+        // ============================================================
+        // Q&A Agent Client
+        // ============================================================
+        function wireQA() {
+            const input = document.getElementById('qa-input');
+            const btn = document.getElementById('qa-send-btn');
+
+            async function sendQuestion(qText) {
+                const q = (qText || input.value).trim();
+                if (!q) return;
+
+                appendQAMsg('user', q);
+                input.value = '';
+
+                const loadingId = appendQAMsg('agent', 'Thinking with Qwen 3B on GPU…', true);
+
+                try {
+                    const resp = await fetch('/api/qa', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question: q, use_llm: true })
+                    });
+                    const data = await resp.json();
+                    removeQAMsg(loadingId);
+                    appendQAMsg('agent', data.answer, false, data.citations);
+                } catch (e) {
+                    removeQAMsg(loadingId);
+                    appendQAMsg('agent', `Could not connect to Q&A Agent: ${e.message}`);
+                }
+            }
+
+            btn.addEventListener('click', () => sendQuestion());
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendQuestion(); });
+
+            document.querySelectorAll('.qa-prompt-chip').forEach(chip => {
+                chip.addEventListener('click', () => sendQuestion(chip.dataset.q));
+            });
+        }
+
+        function appendQAMsg(role, text, isLoading = false, citations = []) {
+            const container = document.getElementById('qa-messages');
+            const msg = document.createElement('div');
+            const id = 'msg-' + Date.now() + Math.random();
+            msg.id = id;
+            msg.className = `qa-msg qa-msg--${role}`;
+
+            const avatar = role === 'user' ? '👤' : '🤖';
+            // Convert simple markdown bullets / bolding
+            let formatted = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/^-\s+(.*)$/gm, '• $1<br>')
+                .replace(/###\s+(.*)$/gm, '<h4 style="margin:6px 0 4px;font-size:0.92rem">$1</h4>')
+                .replace(/\n/g, '<br>');
+
+            let citHtml = '';
+            if (citations && citations.length) {
+                citHtml = `<div class="qa-msg__citations">${citations.map(c => `<span class="qa-citation">${c}</span>`).join('')}</div>`;
+            }
+
+            msg.innerHTML = `
+                <div class="qa-msg__avatar">${avatar}</div>
+                <div class="qa-msg__body">${formatted}${citHtml}</div>
+            `;
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        function removeQAMsg(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        // ============================================================
+        // Cash Forecaster Client
+        // ============================================================
+        function wireForecast() {
+            document.getElementById('run-forecast-btn').addEventListener('click', loadForecast);
+        }
+
+        async function loadForecast() {
+            const openBal = parseFloat(document.getElementById('forecast-opening-input').value) || 5000000;
+            const comEl = document.getElementById('forecast-commentary-text');
+            comEl.textContent = 'Generating 30-day liquidity forecast & LLM commentary…';
+
+            try {
+                const resp = await fetch('/api/forecast', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ opening_balance: openBal, days_horizon: 30, use_llm: true })
+                });
+                const data = await resp.json();
+
+                // Format commentary
+                comEl.innerHTML = data.executive_summary
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/^-\s+(.*)$/gm, '• $1<br>')
+                    .replace(/###\s+(.*)$/gm, '<h4 style="margin:4px 0 2px">$1</h4>')
+                    .replace(/\n/g, '<br>');
+
+                // Render table
+                const tbody = document.getElementById('forecast-table-body');
+                tbody.innerHTML = data.daily_trajectory.map(r => `
+                    <tr>
+                        <td style="font-family:var(--font-mono)">Day ${r.day}</td>
+                        <td style="font-family:var(--font-mono);color:var(--text-muted)">${r.date}</td>
+                        <td class="amount-cell" style="color:var(--color-exact)">+₹${r.inflows.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                        <td class="amount-cell" style="color:var(--color-exception)">-₹${r.outflows.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                        <td class="delta-cell ${r.net_flow >= 0 ? 'delta-cell--zero' : 'delta-cell--large'}">${r.net_flow >= 0 ? '+' : ''}₹${r.net_flow.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                        <td class="amount-cell" style="font-weight:700">₹${r.balance.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                comEl.textContent = `Forecast failed: ${e.message}`;
+            }
+        }
+
+        // ============================================================
+        // Tax-Line Matcher Client
+        // ============================================================
+        function wireTax() {
+            document.getElementById('run-tax-btn').addEventListener('click', loadTaxMatch);
+        }
+
+        async function loadTaxMatch() {
+            const comEl = document.getElementById('tax-commentary-text');
+            comEl.textContent = 'Auditing statutory TDS & GST line items…';
+
+            try {
+                const resp = await fetch('/api/tax-match', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ use_llm: true })
+                });
+                const data = await resp.json();
+
+                comEl.innerHTML = data.audit_commentary
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/^-\s+(.*)$/gm, '• $1<br>')
+                    .replace(/###\s+(.*)$/gm, '<h4 style="margin:4px 0 2px">$1</h4>')
+                    .replace(/\n/g, '<br>');
+
+                const tbody = document.getElementById('tax-table-body');
+                tbody.innerHTML = data.tax_lines.map(t => `
+                    <tr>
+                        <td><span class="tier-badge tier-badge--${t.type === 'TDS_WITHHOLDING' ? 'ai_escalated' : t.type === 'GST_LINE_COMPONENT' ? 'fuzzy' : 'exact'}">${t.type.replace(/_/g, ' ')}</span></td>
+                        <td class="ref-cell">${t.reference_id || '—'}</td>
+                        <td>${t.vendor}</td>
+                        <td style="font-family:var(--font-mono);font-size:0.76rem;color:var(--text-muted)">${t.date}</td>
+                        <td class="amount-cell">₹${t.gross_invoice_amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                        <td class="amount-cell">₹${t.bank_net_payment.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                        <td style="font-family:var(--font-mono);font-size:0.74rem">${t.tax_rate_applied} (${t.tax_section})</td>
+                        <td class="amount-cell" style="color:#fbbf24">₹${t.tax_withheld.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                        <td><span class="tax-status-badge tax-status-badge--${t.compliance_status}">${t.compliance_status}</span></td>
+                        <td class="reason-cell">${t.notes}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                comEl.textContent = `Tax audit failed: ${e.message}`;
+            }
+        }
+
+        // ============================================================
+        // File Dropzones & Reconciliation Ingestion
         // ============================================================
         function wireDropzones() {
             setupDropzone('bank-dropzone', 'bank-file-input', 'bank-file-name', (file, b64) => {
@@ -1366,36 +1188,23 @@
             const label = document.getElementById(labelId);
 
             zone.addEventListener('click', () => input.click());
-
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                zone.classList.add('dragover');
-            });
-
+            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
             zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-
             zone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 zone.classList.remove('dragover');
-                if (e.dataTransfer.files.length) {
-                    handleFile(e.dataTransfer.files[0], label, onFileLoaded);
-                }
+                if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0], label, onFileLoaded);
             });
-
             input.addEventListener('change', (e) => {
-                if (e.target.files.length) {
-                    handleFile(e.target.files[0], label, onFileLoaded);
-                }
+                if (e.target.files.length) handleFile(e.target.files[0], label, onFileLoaded);
             });
         }
 
         function handleFile(file, labelEl, callback) {
             labelEl.style.display = 'inline-block';
             labelEl.textContent = `✓ ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-
             const reader = new FileReader();
             reader.onload = function (evt) {
-                // Extract pure base64 string
                 const result = evt.target.result;
                 const b64 = result.includes(',') ? result.split(',')[1] : btoa(result);
                 callback(file, b64);
@@ -1408,9 +1217,6 @@
             btn.disabled = !(bankFileData && ledgerFileData);
         }
 
-        // ============================================================
-        // Run Reconciliation (API Call)
-        // ============================================================
         async function runReconciliation() {
             const btn = document.getElementById('run-reconcile-btn');
             const progress = document.getElementById('reconcile-progress');
@@ -1449,9 +1255,6 @@
             }
         }
 
-        // ============================================================
-        // Load Sample Data (1-Click)
-        // ============================================================
         async function loadSampleData() {
             const progress = document.getElementById('reconcile-progress');
             progress.classList.add('active');
@@ -1484,21 +1287,16 @@
             }
         }
 
-        // ============================================================
-        // Render Dashboard Metrics & Tables
-        // ============================================================
         function renderReport() {
             if (!REPORT) return;
             const s = REPORT.summary;
 
-            // Summary metrics
             document.getElementById('total-bank').textContent = s.total_bank_rows;
             document.getElementById('total-ledger').textContent = s.total_ledger_rows;
             document.getElementById('total-matched').textContent = s.matched_bank_rows;
             document.getElementById('total-exceptions').textContent = s.total_exceptions;
             document.getElementById('exceptions-badge').textContent = s.total_exceptions;
 
-            // Value + review-queue cards
             const valuePct = s.bank_value_pct != null ? s.bank_value_pct : s.match_rate_pct;
             document.getElementById('value-pct').textContent = Number(valuePct).toFixed(1) + '%';
             document.getElementById('value-sub').textContent = (s.matched_bank_value != null && s.total_bank_value != null)
@@ -1506,21 +1304,15 @@
                 : '—';
             document.getElementById('review-count').textContent = s.needs_human_review || 0;
 
-            // Pipeline flow
             document.getElementById('stage-exact-count').textContent = s.tier_counts.exact || 0;
             document.getElementById('stage-fuzzy-count').textContent = s.tier_counts.fuzzy || 0;
             document.getElementById('stage-split-count').textContent = s.tier_counts.split_payment || 0;
             document.getElementById('stage-ai-count').textContent = s.tier_counts.ai_escalated || 0;
             document.getElementById('stage-exc-count').textContent = s.total_exceptions;
 
-            // Donut
             renderDonut(s.tier_counts);
-
-            // Matches & Exceptions tables
             renderMatchesTable();
             renderExceptions();
-
-            // Animate rate
             animateCounter(s.match_rate_pct);
         }
 
@@ -1548,7 +1340,6 @@
 
             document.getElementById('donut-svg').innerHTML = segments;
 
-            // Legend
             document.getElementById('chart-legend').innerHTML = tiers.map(t => `
                 <div class="chart-legend__item">
                     <div class="chart-legend__dot" style="background:${TIER_COLORS[t]}"></div>
@@ -1625,7 +1416,7 @@
                         <td class="amount-cell">₹${d.ledger_amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
                         <td class="delta-cell ${deltaClass}">₹${d.delta.toFixed(2)}</td>
                         <td>${d.vendor}</td>
-                        <td style="font-family:var(--font-mono);font-size:0.76rem;color:var(--text-muted)">${d.date}</td>
+                        <td style="font-family:var(--font-mono);font-size:0.74rem;color:var(--text-muted)">${d.date}</td>
                         <td class="ref-cell">${d.ref || '—'}</td>
                         <td class="reason-cell">${d.reason}</td>
                     </tr>
@@ -1651,7 +1442,7 @@
                 list = list.filter(e => (e.recommended_action || 'investigate_orphan') === currentActionFilter);
             }
             if (!list.length) {
-                el.innerHTML = `<div class="no-rows">No exceptions match “${currentActionFilter.replace('_', ' ')}” — try another filter.</div>`;
+                el.innerHTML = `<div class="no-rows">No exceptions match “${currentActionFilter.replace('_', ' ')}”.</div>`;
                 return;
             }
 
@@ -1663,18 +1454,15 @@
                     <div class="exception-row">
                         <span class="exception-source exception-source--${srcCls}">${srcLabel}</span>
                         <span class="amount-cell" style="font-weight:600">₹${Number(e.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
-                        <span style="font-family:var(--font-mono);font-size:0.76rem;color:var(--text-muted)">${e.date}</span>
+                        <span style="font-family:var(--font-mono);font-size:0.74rem;color:var(--text-muted)">${e.date}</span>
                         <span class="exception-action exception-action--${action}">${ACTION_LABELS[action] || action.replace('_', ' ')}</span>
-                        <span style="font-size:0.78rem;color:var(--text-secondary)">${e.vendor}</span>
+                        <span style="font-size:0.76rem;color:var(--text-secondary)">${e.vendor}</span>
                         <span class="ref-cell" style="text-align:right">${e.reference_id || '—'}</span>
                     </div>
                 `;
             }).join('');
         }
 
-        // ============================================================
-        // Slide-out Detail Inspector
-        // ============================================================
         function showDetail(matchIdx) {
             const m = REPORT.matches[matchIdx];
             if (!m) return;
@@ -1732,9 +1520,6 @@
             document.getElementById('detail-overlay').classList.remove('open');
         }
 
-        // ============================================================
-        // Export Actions
-        // ============================================================
         function exportMatchesCSV() {
             if (!REPORT || !REPORT.matches) return;
             const rows = [["Tier", "Bank Amount", "Ledger Amount", "Reference ID", "Vendor", "Date", "Reason"]];
@@ -1765,9 +1550,6 @@
             document.body.removeChild(link);
         }
 
-        // ============================================================
-        // Event Listeners
-        // ============================================================
         function wireButtons() {
             document.getElementById('run-reconcile-btn').addEventListener('click', runReconciliation);
             document.getElementById('load-sample-btn').addEventListener('click', loadSampleData);
@@ -1779,9 +1561,9 @@
                 renderMatchesTable();
             });
 
-            document.querySelectorAll('.filter-btn').forEach(btn => {
+            document.querySelectorAll('.filter-btn[data-tier]').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.filter-btn[data-tier]').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     currentFilter = btn.dataset.tier;
                     renderMatchesTable();

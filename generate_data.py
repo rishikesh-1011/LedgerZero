@@ -190,6 +190,48 @@ for _ in range(3):
                            vendor="Bank Charges"),
                       None, "bank_fee"))  # no ground truth
 
+# Tax lines: GST + TDS settlement pairs on BOTH sides (identical refs/amounts
+# -> Stage 1 exact match), one small round-off TDS pair (within Rs tolerance,
+# exercises fuzzy matching), and one bank-only GST credit (a genuine open tax
+# item for the tax-line matcher).
+for i in range(4):
+    amt = round(random.uniform(500, 20000), 2)
+    ref = f"GST{250000 + random.randint(1000, 9999)}"
+    date = rand_date()
+    bank_rows.append((dict(amount=amt, date=date, reference_id=ref,
+                           vendor="GST Payment"),
+                      f"tax-gst-{i}", "tax_line"))
+    ledger_rows.append((dict(amount=amt, date=date, reference_id=ref,
+                             vendor="GST Payment"),
+                        f"tax-gst-{i}", "tax_line"))
+
+tds_amt = round(random.uniform(300, 8000), 2)
+tds_ref = f"TDS{260000 + random.randint(1000, 9999)}"
+tds_vendor = random.choice(VENDORS) + " TDS"
+tds_date = rand_date()
+bank_rows.append((dict(amount=tds_amt, date=tds_date, reference_id=tds_ref,
+                       vendor=tds_vendor),
+                  "tax-tds-0", "tax_line"))
+ledger_rows.append((dict(amount=tds_amt, date=tds_date, reference_id=tds_ref,
+                         vendor=tds_vendor),
+                    "tax-tds-0", "tax_line"))
+
+tds2_amt = round(random.uniform(300, 8000), 2)
+tds2_ref = f"TDS{270000 + random.randint(1000, 9999)}"
+tds2_vendor = random.choice(VENDORS) + " TDS"
+tds2_date = rand_date()
+bank_rows.append((dict(amount=round(tds2_amt - 2.5, 2), date=tds2_date,
+                       reference_id=tds2_ref, vendor=tds2_vendor),
+                  "tax-tds-1", "tax_line"))
+ledger_rows.append((dict(amount=tds2_amt, date=tds2_date, reference_id=tds2_ref,
+                         vendor=tds2_vendor),
+                    "tax-tds-1", "tax_line"))
+
+bank_rows.append((dict(amount=round(random.uniform(500, 3000), 2), date=rand_date(),
+                       reference_id=f"GST{240000 + random.randint(1000, 9999)}",
+                       vendor="GST Input Credit"),
+                  None, "tax_line"))  # open tax item -- bank only
+
 random.shuffle(bank_rows)
 random.shuffle(ledger_rows)
 

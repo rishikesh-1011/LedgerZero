@@ -50,18 +50,24 @@ python test_web_ui.py              # headless smoke test of the web UI
 3. **⚡ GPU Acceleration**:
    - Powered by CUDA 13.0 with native Blackwell (`sm_120`) acceleration on **NVIDIA GeForce RTX 5070 Laptop GPU** (8 GB VRAM) in FP16 precision.
 
-4. **💻 Interactive Dashboard & Web App**:
-   - Drag-and-Drop statement upload portal.
-   - 1-Click sample data loader.
-   - Real-time pipeline flow diagrams and tier breakdown donut charts.
-   - Sortable/filterable table with live search and slide-out variance inspector.
-   - Instant export to `reconciled_matches.csv`, `unresolved_exceptions.csv`, and audit JSON.
-   - Animated match-rate ring, ₹ value-reconciled & review-queue KPI cards, and an
-     exception list with action chips (Review / Fee / Orphan) you can filter by.
-   - Uploads reconcile in <1s via the deterministic Stage 4 — set `APP_USE_LLM=1`
-     before `python app.py` to opt into GPU LLM reasoning for ambiguous rows.
-   - Headless UI smoke test: `python test_web_ui.py` (boots the server, checks
-     the page, status API, and a full reconcile over HTTP — no browser needed).
+4. **💬 Settlement Q&A Agent (`settlement_qa.py`)**:
+   - Natural language conversational assistant powered directly by **Qwen2.5-3B-Instruct**.
+   - Answers inquiries on specific transaction references (e.g. `TXN100018`), vendor settlement drift, unlogged bank fees, and root-cause analysis for exceptions with citations.
+
+5. **📈 Forward Cash Forecaster (`cash_forecaster.py`)**:
+   - Quantitative liquidity modeling analyzing vendor lead times, clearing velocity, and pending accruals.
+   - Computes 7-day, 14-day, and 30-day forward cash trajectories, detects impending safety-buffer deficit points, and generates executive commentary.
+
+6. **🧾 Tax-Line Matcher & Statutory Withholding (`tax_matcher.py`)**:
+   - Reconciles invoice line items against statutory withholdings (TDS under Sec 194C @ 1%/2%, Sec 194J @ 10%, Sec 194Q @ 0.1%) and sales tax (GST @ 5%, 12%, 18%, 28%).
+   - Matches net-of-tax bank debits with gross ledger amounts and flags tax leakage/discrepancies.
+
+7. **💻 Interactive Multi-Module Dashboard & Web App (`dashboard.html`)**:
+   - 4 integrated tabs: **⚡ Reconciliation Hub**, **💬 Settlement Q&A Agent**, **📈 Forward Cash Forecaster**, and **🧾 Tax-Line Matcher**.
+   - Drag-and-Drop statement upload portal (PDF, Word, Excel, CSV, XML, JSON).
+   - Real-time pipeline flow diagrams, donut charts, and slide-out variance inspector.
+   - Animated SVG match-rate ring, ₹ value-reconciled & review-queue KPI cards.
+   - Headless UI smoke test: `python test_web_ui.py` (boots the server and verifies all 7 endpoints over HTTP).
 
 ---
 
@@ -196,6 +202,11 @@ python evaluate.py
 # Multi-seed sweep: the anti-cherry-pick check
 python run_sweep.py --seeds 20        # heuristic Stage 4 (fast)
 python run_sweep.py --seeds 5 --llm   # LLM Stage 4 (slow)
+
+# Intelligence modules (deterministic by default; --llm/USE_LLM=1 for polish)
+USE_LLM=0 python settlement_qa.py "What happened to TXN100018?"
+python -c "import cash_forecaster; print(cash_forecaster.generate_cash_forecast(use_llm=False))"
+python -c "import tax_matcher; print(tax_matcher.run_tax_line_reconciliation(use_llm=False))"
 ```
 
 LLM calls are greedy-decoded, chunked, retried on parse failure, and disk
@@ -213,6 +224,9 @@ sweeps don't re-pay inference latency.
 | `dashboard.html` | Interactive frontend dashboard with drag-and-drop upload and variance inspector |
 | `reconcile.py` | 5-stage explainable reconciliation engine |
 | `llm_resolver.py` | GPU-accelerated local LLM resolver (`Qwen2.5-3B-Instruct`) with domain guardrails |
+| `settlement_qa.py` | Settlement Q&A agent — grounded, citation-backed answers (deterministic + optional LLM polish) |
+| `cash_forecaster.py` | Forward cash forecaster — 30-day liquidity trajectory, deficit alerts, treasury commentary |
+| `tax_matcher.py` | Tax-line matcher — TDS (194C/194J/194Q) & GST revenue/expense verification with leak detection |
 | `generate_data.py` | Synthetic financial statement generator with realistic mismatch patterns + hidden ground truth (`--seed` for reproducibility) |
 | `evaluate.py` | Benchmark evaluation: precision / recall / F1, value coverage, per-scenario accuracy, exception honesty audit |
 | `run_sweep.py` | Multi-seed evaluation sweep — aggregates accuracy and honesty across N seeded datasets |

@@ -2,8 +2,11 @@
 app.py
 
 Full-featured Web App & Reconciliation API Server for AI Finance Controller.
-Serves the interactive dashboard and handles real-time multi-format statement
-uploads (CSV, Excel .xlsx/.xls, Word .docx, PDF .pdf, XML .xml, JSON .json).
+Serves the interactive multi-module platform:
+  - 5-Stage Multi-Source Reconciliation Engine
+  - Settlement Q&A Agent (GPU LLM)
+  - Forward Cash Forecaster & Liquidity Risk Engine
+  - Tax-Line Matcher & Statutory Withholding Engine (TDS & GST)
 
 Run:
   python app.py
@@ -23,10 +26,14 @@ import reconcile
 from reconcile import (
     stage1_exact, stage2_fuzzy, stage3_split_payments, stage4_escalate
 )
+import settlement_qa
+import cash_forecaster
+import tax_matcher
 
 # Interactive uploads should feel instant: default Stage 4 to the
 # deterministic heuristic (<1s).  Set APP_USE_LLM=1 to use the GPU LLM
 # for ambiguous rows instead (first call loads the model, ~30-60s).
+# The Q&A / forecast / tax endpoints keep their own per-request use_llm.
 if os.environ.get("APP_USE_LLM", "0").strip().lower() not in ("1", "true", "yes"):
     reconcile.USE_LLM = False
 
@@ -163,8 +170,13 @@ class ReconciliationRequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
+    def handle(self):
+        try:
+            super().handle()
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError, OSError):
+            pass
+
     def end_headers(self):
-        # Enable CORS and disable caching for API responses
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
@@ -188,31 +200,41 @@ class ReconciliationRequestHandler(http.server.SimpleHTTPRequestHandler):
                 device = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
                 cuda_available = torch.cuda.is_available()
             except ImportError:
-                # LLM deps not installed — the pipeline still works end to end
-                # with the deterministic heuristic fallback for Stage 4.
-                device = "CPU (heuristic mode — install requirements.txt for the GPU LLM)"
+                device = "CPU (heuristic mode — install requirements.txt for GPU LLM)"
                 cuda_available = False
             payload = {
                 "status": "online",
                 "device": device,
                 "cuda_available": cuda_available,
                 "supported_formats": [".csv", ".xlsx", ".xls", ".docx", ".pdf", ".xml", ".json", ".tsv", ".txt"],
+                "modules": ["reconciliation", "settlement_qa", "cash_forecast", "tax_matcher"]
             }
             self._send_json(payload)
+            return
+
+        if self.path.startswith("/api/forecast"):
+            # Instant GET forecast using current report (deterministic by
+            # default; the POST endpoint carries an explicit use_llm flag).
+            res = cash_forecaster.generate_cash_forecast(use_llm=False)
+            self._send_json(res)
+            return
+
+        if self.path.startswith("/api/tax-match"):
+            # Instant GET audit using current report (deterministic by default).
+            res = tax_matcher.run_tax_line_reconciliation(use_llm=False)
+            self._send_json(res)
             return
 
         super().do_GET()
 
     def do_POST(self):
+        content_type = self.headers.get("Content-Type", "")
+        content_length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(content_length)
+
+        # 1. Reconciliation Endpoint
         if self.path.startswith("/api/reconcile"):
-            content_type = self.headers.get("Content-Type", "")
-            content_length = int(self.headers.get("Content-Length", 0))
-            body = self.rfile.read(content_length)
-
             try:
-                bank_rows = []
-                ledger_rows = []
-
                 if "application/json" in content_type:
                     data = json.loads(body.decode("utf-8"))
                     bank_raw = data.get("bank_content", "")
@@ -220,7 +242,6 @@ class ReconciliationRequestHandler(http.server.SimpleHTTPRequestHandler):
                     ledger_raw = data.get("ledger_content", "")
                     ledger_name = data.get("ledger_filename", "ledger.csv")
 
-                    # Handle base64 encoded binary files (e.g. PDF, Word, Excel)
                     if data.get("is_base64"):
                         bank_bytes = base64.b64decode(bank_raw) if bank_raw else b""
                         ledger_bytes = base64.b64decode(ledger_raw) if ledger_raw else b""
@@ -247,7 +268,54 @@ class ReconciliationRequestHandler(http.server.SimpleHTTPRequestHandler):
                 import traceback
                 traceback.print_exc()
                 self._send_json({"error": str(e), "traceback": traceback.format_exc()}, status=500)
+            return
 
+        # 2. Settlement Q&A Endpoint
+        if self.path.startswith("/api/qa"):
+            try:
+                data = json.loads(body.decode("utf-8"))
+                question = data.get("question", "").strip()
+                use_llm = data.get("use_llm", True)
+
+                if not question:
+                    self.send_error(400, "Missing 'question' parameter.")
+                    return
+
+                res = settlement_qa.ask_settlement_qa(question, use_llm=use_llm)
+                self._send_json(res)
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self._send_json({"error": str(e)}, status=500)
+            return
+
+        # 3. Cash Forecaster Endpoint
+        if self.path.startswith("/api/forecast"):
+            try:
+                data = json.loads(body.decode("utf-8")) if body else {}
+                opening_bal = float(data.get("opening_balance", cash_forecaster.DEFAULT_OPENING_BALANCE))
+                days = int(data.get("days_horizon", 30))
+                use_llm = data.get("use_llm", True)
+
+                res = cash_forecaster.generate_cash_forecast(opening_balance=opening_bal, days_horizon=days, use_llm=use_llm)
+                self._send_json(res)
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self._send_json({"error": str(e)}, status=500)
+            return
+
+        # 4. Tax-Line Matcher Endpoint
+        if self.path.startswith("/api/tax-match"):
+            try:
+                data = json.loads(body.decode("utf-8")) if body else {}
+                use_llm = data.get("use_llm", True)
+                res = tax_matcher.run_tax_line_reconciliation(use_llm=use_llm)
+                self._send_json(res)
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self._send_json({"error": str(e)}, status=500)
             return
 
         self.send_error(404, "Endpoint not found")
@@ -261,10 +329,17 @@ class ReconciliationRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
 
+class ThreadingServer(socketserver.ThreadingTCPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+
+    def handle_error(self, request, client_address):
+        # Ignore client disconnect / connection reset errors cleanly
+        pass
+
+
 def ensure_sample_data():
-    """Fresh-clone safety: the dashboard's 1-click sample loader fetches
-    bank_statement.csv / company_ledger.csv, which are gitignored generated
-    artifacts.  Regenerate them from the seeded generator if missing."""
+    """Fresh-clone safety: regenerate sample CSVs if missing."""
     missing = [f for f in ("bank_statement.csv", "company_ledger.csv")
                if not os.path.exists(os.path.join(DIRECTORY, f))]
     if missing:
@@ -276,25 +351,30 @@ def ensure_sample_data():
 
 def main():
     ensure_sample_data()
-    socketserver.ThreadingTCPServer.allow_reuse_address = True
-    with socketserver.ThreadingTCPServer(("", PORT), ReconciliationRequestHandler) as httpd:
-        print("=" * 70)
-        print(f"[SERVER] AI Finance Controller Web App running at:")
-        print(f"   http://localhost:{PORT}/dashboard.html")
-        print("=" * 70)
-        print(f"Supported Upload Formats:")
-        print(f"   - PDF Statements    (.pdf)")
-        print(f"   - Word Documents    (.docx, .doc)")
-        print(f"   - Excel Sheets      (.xlsx, .xls)")
-        print(f"   - CSV / TSV / Text  (.csv, .tsv, .txt)")
-        print(f"   - XML Statements    (.xml)")
-        print(f"   - JSON              (.json)")
-        print()
-        print("Press Ctrl+C to stop the server.")
+    httpd = ThreadingServer(("", PORT), ReconciliationRequestHandler)
+    print("=" * 70)
+    print(f"[SERVER] AI Finance Controller Web App running at:")
+    print(f"   http://localhost:{PORT}/dashboard.html")
+    print("=" * 70)
+    print("Modules Active:")
+    print("   1. Multi-Source Reconciliation Engine (5-Stage + GPU LLM)")
+    print("   2. Settlement Q&A Agent (GPU LLM)")
+    print("   3. Forward Cash Forecaster & Liquidity Risk Engine")
+    print("   4. Tax-Line Matcher (TDS & GST Statutory Withholding)")
+    print()
+    print("Supported Upload Formats: PDF, Word (.docx), Excel (.xlsx), CSV, XML, JSON")
+    print()
+    print("Press Ctrl+C to stop the server.")
+
+    while True:
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
             print("\nShutting down server.")
+            break
+        except Exception as e:
+            import time
+            time.sleep(0.2)
 
 
 if __name__ == "__main__":
