@@ -46,7 +46,14 @@ def parse_args():
     return ap.parse_args()
 
 
-ARGS = parse_args()
+ARGS = (
+    parse_args() if __name__ == "__main__" else
+    # Imported as a library (e.g. by app.py) — use defaults instead of
+    # parsing the *host's* command line.
+    argparse.Namespace(bank="bank_statement.csv", ledger="company_ledger.csv",
+                       tolerance=5.00, date_window=3, confidence=60,
+                       no_llm=False, model=None)
+)
 
 AMOUNT_TOLERANCE = ARGS.tolerance   # rupees (handles rounding to nearest 10)
 DATE_WINDOW_DAYS = ARGS.date_window

@@ -19,9 +19,16 @@ import sys
 from datetime import datetime
 
 import document_parser
+import reconcile
 from reconcile import (
     stage1_exact, stage2_fuzzy, stage3_split_payments, stage4_escalate
 )
+
+# Interactive uploads should feel instant: default Stage 4 to the
+# deterministic heuristic (<1s).  Set APP_USE_LLM=1 to use the GPU LLM
+# for ambiguous rows instead (first call loads the model, ~30-60s).
+if os.environ.get("APP_USE_LLM", "0").strip().lower() not in ("1", "true", "yes"):
+    reconcile.USE_LLM = False
 
 PORT = 8080
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -119,6 +126,7 @@ def reconcile_records(bank_rows, ledger_rows):
 
 class ReconciliationRequestHandler(http.server.SimpleHTTPRequestHandler):
     """Custom request handler supporting static dashboard serving & REST API endpoints."""
+    protocol_version = "HTTP/1.1"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
@@ -128,6 +136,7 @@ class ReconciliationRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Connection", "close")
         super().end_headers()
 
     def do_OPTIONS(self):
@@ -235,8 +244,8 @@ def ensure_sample_data():
 
 def main():
     ensure_sample_data()
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("", PORT), ReconciliationRequestHandler) as httpd:
+    socketserver.ThreadingTCPServer.allow_reuse_address = True
+    with socketserver.ThreadingTCPServer(("", PORT), ReconciliationRequestHandler) as httpd:
         print("=" * 70)
         print(f"[SERVER] AI Finance Controller Web App running at:")
         print(f"   http://localhost:{PORT}/dashboard.html")

@@ -27,6 +27,7 @@ python evaluate.py                 # precision / recall / F1 + exception audit
 python run_sweep.py --seeds 20     # 20-seed sweep: the anti-cherry-pick check
 
 python app.py                      # web dashboard -> http://localhost:8080
+python test_web_ui.py              # headless smoke test of the web UI
 ```
 
 *(Replace `OWNER/REPO` in the badge and clone URL after publishing.)*
@@ -55,6 +56,10 @@ python app.py                      # web dashboard -> http://localhost:8080
    - Real-time pipeline flow diagrams and tier breakdown donut charts.
    - Sortable/filterable table with live search and slide-out variance inspector.
    - Instant export to `reconciled_matches.csv`, `unresolved_exceptions.csv`, and audit JSON.
+   - Uploads reconcile in <1s via the deterministic Stage 4 — set `APP_USE_LLM=1`
+     before `python app.py` to opt into GPU LLM reasoning for ambiguous rows.
+   - Headless UI smoke test: `python test_web_ui.py` (boots the server, checks
+     the page, status API, and a full reconcile over HTTP — no browser needed).
 
 ---
 
