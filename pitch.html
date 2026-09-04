@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitch Video &amp; Executive Showcase — LedgerZero</title>
+    <meta name="description" content="Official Pitch Video, Demonstration Script, and Executive Showcase for LedgerZero. Created by Rishikesh P.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #05070c;
+            --bg-card: rgba(10, 14, 22, 0.95);
+            --bg-card-hover: rgba(16, 22, 35, 0.98);
+            --border-glass: rgba(255, 255, 255, 0.12);
+            --border-glow: rgba(0, 229, 255, 0.35);
+
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --text-muted: #718096;
+
+            --color-exact: #00ff88;
+            --color-fuzzy: #00e5ff;
+            --color-split: #bd00ff;
+            --color-ai: #ffaa00;
+            --color-alert: #ff0055;
+
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            line-height: 1.55;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% -10%, rgba(0, 229, 255, 0.15) 0%, rgba(189, 0, 255, 0.08) 45%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1520px;
+            margin: 0 auto;
+            padding: 24px 32px 80px;
+        }
+
+        /* HEADER */
+        .exec-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 14px 24px;
+            background: rgba(8, 12, 20, 0.92);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            backdrop-filter: blur(20px);
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            flex-wrap: wrap;
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.25), rgba(0, 255, 136, 0.18));
+            border: 1px solid rgba(0, 229, 255, 0.45);
+            display: grid;
+            place-items: center;
+            font-size: 1.4rem;
+        }
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 850;
+            letter-spacing: -0.02em;
+            color: #fff;
+        }
+        .brand-text p {
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: 9px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .btn--primary {
+            background: linear-gradient(135deg, #00ff88 0%, #00e5ff 100%);
+            color: #000;
+            font-weight: 750;
+        }
+        .btn--primary:hover {
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.45);
+            transform: translateY(-1px);
+        }
+        .btn--secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-glass);
+            color: #fff;
+        }
+        .btn--secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--color-fuzzy);
+            transform: translateY(-1px);
+        }
+
+        /* GRID LAYOUT */
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 24px;
+        }
+        @media (max-width: 1120px) {
+            .showcase-grid { grid-template-columns: 1fr; }
+        }
+
+        /* VIDEO STAGE */
+        .video-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            background: #020306;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.12);
+        }
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .controls-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+
+        .playback-tools {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* CHAPTER NAVIGATION */
+        .chapter-box {
+            background: rgba(14, 18, 28, 0.8);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .chapter-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .chapter-chips {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        @media (max-width: 768px) {
+            .chapter-chips { grid-template-columns: 1fr; }
+        }
+        .chapter-chip {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .chapter-chip:hover, .chapter-chip.active {
+            background: rgba(0, 229, 255, 0.1);
+            border-color: var(--color-fuzzy);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .chapter-chip strong {
+            font-size: 0.74rem;
+            color: #fff;
+        }
+        .chapter-chip span {
+            font-family: var(--font-mono);
+            font-size: 0.64rem;
+            color: var(--color-exact);
+        }
+
+        /* RIGHT COLUMN: PITCH DECK & JUDGE RUBRIC */
+        .deck-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .deck-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 22px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.8);
+        }
+        .deck-card__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-glass);
+            padding-bottom: 12px;
+        }
+        .deck-card__title {
+            font-size: 0.88rem;
+            font-weight: 750;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* KPI SCORECARD */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+        .kpi-tile {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+        .kpi-tile .kpi-num {
+            font-size: 1.35rem;
+            font-weight: 850;
+            font-family: var(--font-mono);
+            color: var(--color-exact);
+            line-height: 1.1;
+        }
+        .kpi-tile .kpi-lbl {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        /* SCRIPT ACCORDION */
+        .script-segment {
+            background: rgba(14, 18, 28, 0.6);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .script-segment.active {
+            border-color: var(--color-fuzzy);
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+        }
+        .script-header {
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            font-size: 0.76rem;
+            font-weight: 600;
+        }
+        .script-body {
+            padding: 12px 14px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            line-height: 1.5;
+        }
+        .script-body .cue {
+            color: var(--color-ai);
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .diff-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 0.66rem;
+            font-family: var(--font-mono);
+            background: rgba(0, 255, 136, 0.12);
+            color: var(--color-exact);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+
+        /* LIVE NARRATOR PULSE */
+        .narrator-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.74rem;
+            color: var(--text-muted);
+        }
+        .narrator-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+        .narrator-pulse.speaking {
+            background: var(--color-exact);
+            box-shadow: 0 0 8px var(--color-exact);
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header class="exec-header">
+            <div class="brand-group">
+                <div class="brand-icon">⚡</div>
+                <div class="brand-text">
+                    <h1>LEDGERZERO — PITCH VIDEO SUITE</h1>
+                    <p>Autonomous Corporate Treasury &amp; Statutory Close Engine • Created by Rishikesh P</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="/dashboard.html" class="btn btn--secondary" target="_blank">
+                    <span>⚡ Open Live Dashboard</span>
+                </a>
+                <a href="/pitch_video.mp4" download="LedgerZero_Pitch.mp4" class="btn btn--primary">
+                    <span>📥 Download Full HD MP4 (1080p)</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- MAIN SHOWCASE GRID -->
+        <main class="showcase-grid">
+            <!-- LEFT: VIDEO PLAYER & INTERACTIVE NARRATION -->
+            <section class="video-card">
+                <div class="video-container">
+                    <video id="pitchVideo" controls preload="auto" poster="/dossier_modal_view_1788526051730.png">
+                        <source src="/pitch_video.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+
+                <div class="controls-toolbar">
+                    <div class="playback-tools">
+                        <button class="btn btn--primary" id="playNarratorBtn" type="button">
+                            <span id="narratorBtnIcon">▶</span>
+                            <span id="narratorBtnText">Play Pitch with Live Voiceover</span>
+                        </button>
+                        <button class="btn btn--secondary" id="restartVideoBtn" type="button">
+                            <span>⏮ Restart</span>
+                        </button>
+                    </div>
+                    <div class="narrator-status">
+                        <span class="narrator-pulse" id="narratorPulse"></span>
+                        <span id="narratorStatusText">Voiceover Standby (Web Speech Engine Ready)</span>
+                    </div>
+                </div>
+
+                <!-- CHAPTER SCRUBBER JUMPS -->
+                <div class="chapter-box">
+                    <div class="chapter-title">
+                        <span>Interactive Timeline Chapters (Click to Jump)</span>
+                        <span style="color:var(--color-fuzzy)">Full HD 1080p • 2m 11s</span>
+                    </div>
+                    <div class="chapter-chips">
+                        <div class="chapter-chip" onclick="seekVideo(0)">
+                            <strong>01. The Problem &amp; Vision</strong>
+                            <span>00:00 • Title Intro</span>
+                        </div>
+                        <div class="chapter-chip" onclick="seekVideo(15)">
+                            <strong>02. Statement Ingestion Hub</strong>
+                            <span>00:15 • 100% Precision</span>
+                        </div>
+                        <div class="chapter-chip" onclick="seekVideo(30)">
+                            <strong>03. Explainable 5-Stage Funnel</strong>
+                            <span>00:30 • Honest Tiers</span>
+                        </div>
+                        <div class="chapter-chip" onclick="seekVideo(45)">
+                            <strong>04. Controller Close Worklist</strong>
+                            <span>00:45 • Actionable SLAs</span>
+                        </div>
+                        <div class="chapter-chip" onclick="seekVideo(58)">
+                            <strong>05. Settlement Q&amp;A Copilot</strong>
+                            <span>00:58 • Audit Citations</span>
+                        </div>
+                        <div class="chapter-chip" onclick="seekVideo(73)">
+                            <strong>06. Forward Cash Forecaster</strong>
+                            <span>01:13 • Liquidity Risks</span>
+                        </div>
+                        <div class="chapter-chip" onclick="seekVideo(89)">
+                            <strong>07. Statutory Tax-Line Matcher</strong>
+                            <span>01:29 • TDS &amp; GST Slabs</span>
+                        </div>
+                        <div class="chapter-chip" onclick="seekVideo(107)">
+                            <strong>08. 17K+ Txns/Sec Benchmarks</strong>
+                            <span>01:47 • 20-Seed Proof</span>
+                        </div>
+                        <div class="chapter-chip" onclick="seekVideo(121)">
+                            <strong>09. Conclusion &amp; Outro</strong>
+                            <span>02:01 • Production Ready</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT: PITCH SCRIPT & JUDGE DOSSIER -->
+            <section class="deck-column">
+                <!-- SCORECARD CARD -->
+                <div class="deck-card">
+                    <div class="deck-card__header">
+                        <div class="deck-card__title">
+                            <span>🏆 Measured Ground-Truth Scorecard</span>
+                        </div>
+                        <span class="diff-tag">Seed 42 Tested</span>
+                    </div>
+                    <div class="kpi-grid">
+                        <div class="kpi-tile">
+                            <div class="kpi-num">100.0%</div>
+                            <div class="kpi-lbl">Precision</div>
+                        </div>
+                        <div class="kpi-tile">
+                            <div class="kpi-num">100.0%</div>
+                            <div class="kpi-lbl">Recall</div>
+                        </div>
+                        <div class="kpi-tile">
+                            <div class="kpi-num">62,911</div>
+                            <div class="kpi-lbl">Txns / Sec</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="diff-tag">Zero Silent Force-Matches</span>
+                        <span class="diff-tag">Zero Collisions</span>
+                        <span class="diff-tag">Zero-Dependency Core</span>
+                        <span class="diff-tag">NVIDIA RTX FP16 Accelerated</span>
+                    </div>
+                </div>
+
+                <!-- 3-MINUTE JUDGE SCRIPT -->
+                <div class="deck-card">
+                    <div class="deck-card__header">
+                        <div class="deck-card__title">
+                            <span>📜 Synchronized Pitch Narration Script</span>
+                        </div>
+                        <span style="font-size:0.7rem;color:var(--text-muted);font-family:var(--font-mono)">Judge Ready</span>
+                    </div>
+
+                    <div class="script-segment" id="seg-0">
+                        <div class="script-header" onclick="seekVideo(0)">
+                            <span>00:00 - 00:15 • Intro &amp; The Problem</span>
+                            <span style="color:var(--color-exact)">▶</span>
+                        </div>
+                        <div class="script-body">
+                            <div class="cue">[VISUAL: Title Card with LedgerZero Enterprise Badges]</div>
+                            "Corporate finance teams lose weeks every month, manually matching bank statements against ERP ledgers. Meet LedgerZero... an autonomous, truth-first corporate treasury and automated reconciliation platform."
+                        </div>
+                    </div>
+
+                    <div class="script-segment" id="seg-1">
+                        <div class="script-header" onclick="seekVideo(15)">
+                            <span>00:15 - 00:30 • Ingestion Hub &amp; Match Rate</span>
+                            <span style="color:var(--color-exact)">▶</span>
+                        </div>
+                        <div class="script-body">
+                            <div class="cue">[VISUAL: Dashboard Hero view with 100% precision ring &amp; 148 transactions]</div>
+                            "LedgerZero ingests PDF, Excel, Word, CSV, and XML statements with automatic schema mapping. It reconciles multi-source enterprise feeds, with 100 percent precision on verified ground truth."
+                        </div>
+                    </div>
+
+                    <div class="script-segment" id="seg-2">
+                        <div class="script-header" onclick="seekVideo(30)">
+                            <span>00:30 - 00:45 • 5-Stage Explainable Funnel</span>
+                            <span style="color:var(--color-exact)">▶</span>
+                        </div>
+                        <div class="script-body">
+                            <div class="cue">[VISUAL: Tiered Resolution Funnel showing Exact, Fuzzy, Split, and LLM tiers]</div>
+                            "Rather than relying on black-box matchers that hallucinate pairs, LedgerZero enforces truth over throughput. Transactions flow through Exact, Fuzzy, and Split settlements, escalating edge cases to local GPU reasoning."
+                        </div>
+                    </div>
+
+                    <div class="script-segment" id="seg-3">
+                        <div class="script-header" onclick="seekVideo(45)">
+                            <span>00:45 - 00:58 • Controller Close Worklist</span>
+                            <span style="color:var(--color-exact)">▶</span>
+                        </div>
+                        <div class="script-body">
+                            <div class="cue">[VISUAL: Worklist items with owner, SLA, journal entry recommendations]</div>
+                            "Every unresolved exception is automatically turned into an actionable close worklist, with accountable owners, priority SLAs, financial exposure, and one-click adjusting journal entries."
+                        </div>
+                    </div>
+
+                    <div class="script-segment" id="seg-4">
+                        <div class="script-header" onclick="seekVideo(58)">
+                            <span>00:58 - 01:13 • Settlement Q&amp;A Copilot</span>
+                            <span style="color:var(--color-exact)">▶</span>
+                        </div>
+                        <div class="script-body">
+                            <div class="cue">[VISUAL: Settlement Q&amp;A Agent query and cited response from Qwen-2.5 3B]</div>
+                            "Controllers can converse directly with their financial records, using our local Qwen 2.5, 3B model. Ask about unlogged charges or timing drift, and receive instant answers, backed by verifiable audit citations."
+                        </div>
+                    </div>
+
+                    <div class="script-segment" id="seg-5">
+                        <div class="script-header" onclick="seekVideo(73)">
+                            <span>01:13 - 01:29 • Forward Cash Forecaster</span>
+                            <span style="color:var(--color-exact)">▶</span>
+                        </div>
+                        <div class="script-body">
+                            <div class="cue">[VISUAL: 14-day cash trajectory curve with safety-buffer deficit alert]</div>
+                            "Audited reconciliation directly powers predictive liquidity. The cash forecaster models clearing velocity and pending accruals, projecting cash trajectories across seven, fourteen, and thirty days, while alerting on safety buffer deficits."
+                        </div>
+                    </div>
+
+                    <div class="script-segment" id="seg-6">
+                        <div class="script-header" onclick="seekVideo(89)">
+                            <span>01:29 - 01:47 • Statutory Tax Controls</span>
+                            <span style="color:var(--color-exact)">▶</span>
+                        </div>
+                        <div class="script-body">
+                            <div class="cue">[VISUAL: Tax line matcher auditing TDS under Sec 194C/J/Q and GST rates]</div>
+                            "Our statutory withholding engine audits invoice line items against Indian tax compliance, reconciling TDS Sections 194C, 194J, and 194Q alongside GST slabs, to instantly uncover and flag tax leakage."
+                        </div>
+                    </div>
+
+                    <div class="script-segment" id="seg-7">
+                        <div class="script-header" onclick="seekVideo(107)">
+                            <span>01:47 - 02:01 • Enterprise Benchmarks</span>
+                            <span style="color:var(--color-exact)">▶</span>
+                        </div>
+                        <div class="script-body">
+                            <div class="cue">[VISUAL: Benchmark suite showing 17,263 txns/sec, 57ms latency, and 100% precision]</div>
+                            "Engineered for enterprise scale, LedgerZero reconciles over seventeen thousand transactions per second with zero collisions. Automated twenty-seed sweeps prove its reliability is rock solid."
+                        </div>
+                    </div>
+
+                    <div class="script-segment" id="seg-8">
+                        <div class="script-header" onclick="seekVideo(121)">
+                            <span>02:01 - 02:11 • Verdict &amp; Outro</span>
+                            <span style="color:var(--color-exact)">▶</span>
+                        </div>
+                        <div class="script-body">
+                            <div class="cue">[VISUAL: Minimal Outro Card: Created by Rishikesh P]</div>
+                            "LedgerZero: Zero discrepancies. Zero black-box hallucinations. Zero-dependency core. And zero close drift. Truth over throughput."
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- SYNCHRONIZED NARRATOR & SCRIPT ENGINE -->
+    <script>
+        const video = document.getElementById('pitchVideo');
+        const playBtn = document.getElementById('playNarratorBtn');
+        const playBtnText = document.getElementById('narratorBtnText');
+        const playBtnIcon = document.getElementById('narratorBtnIcon');
+        const restartBtn = document.getElementById('restartVideoBtn');
+        const narratorPulse = document.getElementById('narratorPulse');
+        const narratorStatus = document.getElementById('narratorStatusText');
+
+        const chapters = [
+            { time: 0, segId: 'seg-0', text: "Corporate finance teams lose weeks every month, manually matching bank statements against ERP ledgers. Meet LedgerZero... an autonomous, truth-first corporate treasury and automated reconciliation platform." },
+            { time: 15, segId: 'seg-1', text: "LedgerZero ingests PDF, Excel, Word, CSV, and XML statements with automatic schema mapping. It reconciles multi-source enterprise feeds, with 100 percent precision on verified ground truth." },
+            { time: 30, segId: 'seg-2', text: "Rather than relying on black-box matchers that hallucinate pairs, LedgerZero enforces truth over throughput. Transactions flow through Exact, Fuzzy, and Split settlements, escalating edge cases to local GPU reasoning." },
+            { time: 45, segId: 'seg-3', text: "Every unresolved exception is automatically turned into an actionable close worklist, with accountable owners, priority SLAs, financial exposure, and one-click adjusting journal entries." },
+            { time: 58, segId: 'seg-4', text: "Controllers can converse directly with their financial records, using our local Qwen 2.5, 3B model. Ask about unlogged charges or timing drift, and receive instant answers, backed by verifiable audit citations." },
+            { time: 73, segId: 'seg-5', text: "Audited reconciliation directly powers predictive liquidity. The cash forecaster models clearing velocity and pending accruals, projecting cash trajectories across seven, fourteen, and thirty days, while alerting on safety buffer deficits." },
+            { time: 89, segId: 'seg-6', text: "Our statutory withholding engine audits invoice line items against Indian tax compliance, reconciling TDS Sections 194C, 194J, and 194Q alongside GST slabs, to instantly uncover and flag tax leakage." },
+            { time: 107, segId: 'seg-7', text: "Engineered for enterprise scale, LedgerZero reconciles over seventeen thousand transactions per second with zero collisions. Automated twenty-seed sweeps prove its reliability is rock solid." },
+            { time: 121, segId: 'seg-8', text: "LedgerZero: Zero discrepancies. Zero black-box hallucinations. Zero-dependency core. And zero close drift. Truth over throughput." }
+        ];
+
+        let synth = window.speechSynthesis;
+        let isNarrating = false;
+        let currentUtterance = null;
+        let lastSpokenChapter = -1;
+
+        function seekVideo(sec) {
+            video.currentTime = sec;
+            video.play();
+            updateActiveChapter(sec);
+            if (isNarrating) {
+                speakChapterAt(sec);
+            }
+        }
+
+        function updateActiveChapter(currentTime) {
+            document.querySelectorAll('.script-segment').forEach(el => el.classList.remove('active'));
+            let activeIdx = 0;
+            for (let i = chapters.length - 1; i >= 0; i--) {
+                if (currentTime >= chapters[i].time) {
+                    activeIdx = i;
+                    break;
+                }
+            }
+            const seg = document.getElementById(`seg-${activeIdx}`);
+            if (seg) seg.classList.add('active');
+        }
+
+        video.addEventListener('timeupdate', () => {
+            updateActiveChapter(video.currentTime);
+            if (isNarrating) {
+                for (let i = chapters.length - 1; i >= 0; i--) {
+                    if (video.currentTime >= chapters[i].time && lastSpokenChapter !== i) {
+                        speakChapterIndex(i);
+                        break;
+                    }
+                }
+            }
+        });
+
+        function speakChapterIndex(idx) {
+            if (!synth) return;
+            synth.cancel();
+            lastSpokenChapter = idx;
+            const item = chapters[idx];
+            currentUtterance = new SpeechSynthesisUtterance(item.text);
+            currentUtterance.rate = 1.05;
+            currentUtterance.pitch = 1.0;
+
+            const voices = synth.getVoices();
+            const preferred = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('David')));
+            if (preferred) currentUtterance.voice = preferred;
+
+            currentUtterance.onstart = () => {
+                narratorPulse.classList.add('speaking');
+                narratorStatus.textContent = `Narrating Chapter ${idx + 1}: ${item.text.slice(0, 45)}...`;
+            };
+            currentUtterance.onend = () => {
+                narratorPulse.classList.remove('speaking');
+                narratorStatus.textContent = "Voiceover Synchronized with Video";
+            };
+
+            synth.speak(currentUtterance);
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (!isNarrating) {
+                isNarrating = true;
+                playBtnText.textContent = "Mute Live Voiceover";
+                playBtnIcon.textContent = "🔇";
+                video.play();
+                lastSpokenChapter = -1;
+                speakChapterIndex(0);
+            } else {
+                isNarrating = false;
+                if (synth) synth.cancel();
+                playBtnText.textContent = "Play Pitch with Live Voiceover";
+                playBtnIcon.textContent = "▶";
+                narratorPulse.classList.remove('speaking');
+                narratorStatus.textContent = "Voiceover Muted";
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            seekVideo(0);
+        });
+
+        video.addEventListener('pause', () => {
+            if (synth && isNarrating) synth.pause();
+        });
+        video.addEventListener('play', () => {
+            if (synth && isNarrating) synth.resume();
+        });
+    </script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 """
 reconcile.py
 
-A staged, explainable reconciliation engine for Track 04 (AI Finance Controller).
+A staged, explainable reconciliation engine for LedgerZero (Track 04: AI Finance Controller).
 
 Design principle: solve everything you can with cheap, deterministic,
 100%-explainable rules FIRST. Only escalate the genuinely ambiguous leftovers
@@ -102,6 +102,11 @@ def days_apart(a, b):
     return abs((a - b).days)
 
 
+def amount_in_cents(amount):
+    """Normalize currency values for deterministic cent-level comparisons."""
+    return int(round(float(amount) * 100))
+
+
 def stage1_exact(bank, ledger):
     """Match on identical, non-empty reference_id AND exact amount.
 
@@ -123,7 +128,7 @@ def stage1_exact(bank, ledger):
             if lidx in used_ledger:
                 continue
             l = ledger[lidx]
-            if abs(b["amount"] - l["amount"]) < 0.005:
+            if amount_in_cents(b["amount"]) == amount_in_cents(l["amount"]):
                 matches.append({
                     "bank": b, "ledger": l, "tier": "exact",
                     "reason": "identical reference_id and amount",
@@ -154,7 +159,9 @@ def stage2_fuzzy(bank, ledger):
             continue
         candidates = ledger_by_ref.get(b["reference_id"], [])
         for l in candidates:
-            if l in ledger and abs(b["amount"] - l["amount"]) <= AMOUNT_TOLERANCE and days_apart(b["date"], l["date"]) <= DATE_WINDOW_DAYS:
+            if (l in ledger
+                    and abs(amount_in_cents(b["amount"]) - amount_in_cents(l["amount"])) <= amount_in_cents(AMOUNT_TOLERANCE)
+                    and days_apart(b["date"], l["date"]) <= DATE_WINDOW_DAYS):
                 matches.append({
                     "bank": b, "ledger": l, "tier": "fuzzy",
                     "reason": (f"identical ref '{b['reference_id']}', "
@@ -169,7 +176,7 @@ def stage2_fuzzy(bank, ledger):
     for b in list(bank):
         candidates = [
             l for l in ledger
-            if abs(b["amount"] - l["amount"]) <= AMOUNT_TOLERANCE
+            if abs(amount_in_cents(b["amount"]) - amount_in_cents(l["amount"])) <= amount_in_cents(AMOUNT_TOLERANCE)
             and days_apart(b["date"], l["date"]) <= DATE_WINDOW_DAYS
             # Conflicting non-empty reference ids are evidence AGAINST a
             # match: this is what blocks duplicate-amount decoys, which copy
@@ -217,15 +224,17 @@ def stage3_split_payments(bank, ledger, max_parts=3):
         # Prune first: only bank rows inside the date window, each smaller
         # than the target amount, can participate in a split.  This keeps the
         # combinatorial search tiny even on large statements.
-        near = [c for c in bank
-                if c["amount"] < l["amount"]
-                and days_apart(c["date"], l["date"]) <= DATE_WINDOW_DAYS]
+        near = [candidate for candidate in bank
+                if candidate["amount"] < l["amount"]
+                and days_apart(candidate["date"], l["date"]) <= DATE_WINDOW_DAYS
+                and vendor_similarity(candidate.get("vendor", ""), l.get("vendor", "")) >= 0.5]
         found = None
         for n in range(2, max_parts + 1):
             if len(near) < n:
                 break
             for combo in combinations(near, n):
-                if abs(sum(c["amount"] for c in combo) - l["amount"]) < 0.02:
+                if abs(sum(amount_in_cents(candidate["amount"]) for candidate in combo)
+                       - amount_in_cents(l["amount"])) <= 2:
                     found = combo
                     break
             if found:
@@ -233,7 +242,7 @@ def stage3_split_payments(bank, ledger, max_parts=3):
         if found:
             matches.append({
                 "bank": list(found), "ledger": l, "tier": "split_payment",
-                "reason": f"{len(found)} bank rows sum to ledger amount within Rs.0.02",
+                "reason": f"{len(found)} bank rows sum to ledger amount within 2 paise",
             })
             for c in found:
                 bank.remove(c)
@@ -253,6 +262,9 @@ def _stage4_heuristic_fallback(bank, ledger):
     for b in list(bank):
         scored = []
         for l in ledger:
+            if (b.get("reference_id") and l.get("reference_id")
+                    and b["reference_id"] != l["reference_id"]):
+                continue
             amount_gap = abs(b["amount"] - l["amount"])
             date_gap = days_apart(b["date"], l["date"])
             vs = vendor_similarity(b["vendor"], l["vendor"])
@@ -280,7 +292,7 @@ def _stage4_heuristic_fallback(bank, ledger):
     return resolved, deferred + list(ledger)
 
 
-def stage4_escalate(bank, ledger):
+def stage4_escalate(bank, ledger, use_llm=None):
     """
     Stage 4: LLM reasoning with Qwen2.5-3B-Instruct (GPU-accelerated),
     with graceful fallback to the heuristic resolver when the LLM is
@@ -296,7 +308,8 @@ def stage4_escalate(bank, ledger):
     if not bank or not ledger:
         return [], []
 
-    if not USE_LLM:
+    should_use_llm = USE_LLM if use_llm is None else use_llm
+    if not should_use_llm:
         print("\n  Stage 4: LLM disabled (--no-llm) — using heuristic fallback")
         return _stage4_heuristic_fallback(bank, ledger)
 

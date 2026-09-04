@@ -1,7 +1,7 @@
 """
 tax_matcher.py
 
-Tax-Line Matcher & Statutory Withholding Engine for Track 04 (AI Finance Controller).
+Tax-Line Matcher & Statutory Withholding Engine for LedgerZero (Track 04: AI Finance Controller).
 
 Reconciles invoice line items with tax withholdings (TDS) and sales tax (GST):
   - TDS Rules: 1% (194C), 2% (194C/J), 10% (194J/I), 0.1% (194Q)

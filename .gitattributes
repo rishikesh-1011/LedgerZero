@@ -10,3 +10,9 @@
 *.yaml text
 *.html text
 *.txt text
+*.cs text
+
+# Binary types
+*.ico binary
+*.exe binary
+*.mp4 binary

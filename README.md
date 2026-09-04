@@ -1,13 +1,21 @@
-# AI Finance Controller — Multi-Source Reconciliation Agent
+# LedgerZero — AI Finance Controller
 
-**Track 04 — Razorpay AI Buildathon 2026**
+**Track 04: AI Finance Controller — Razorpay AI Buildathon 2026**
 
 ![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![LLM](https://img.shields.io/badge/LLM-local%20%7C%20GPU%20optional-9cf)
+**LedgerZero** is an enterprise-grade finance controller that reconciles
+transactions across bank feeds and ERP ledgers, reports a measured match rate
+against hidden ground truth, and produces an actionable, prioritized exception
+worklist with audit evidence.
 
-An enterprise-grade AI financial controller that reconciles transactions across multi-source statements, reports an honest match rate, and produces a reasoned exception list with full audit trails.
+> 🎬 **Buildathon submission kit:** use [`SUBMISSION.md`](SUBMISSION.md),
+> [`SUBMISSION_CHECKLIST.md`](SUBMISSION_CHECKLIST.md),
+> [`PITCH_VIDEO.md`](PITCH_VIDEO.md), and
+> [`ARCHITECTURE.md`](ARCHITECTURE.md) to prepare the public repository,
+> five-minute live demo, and application answers.
 
 > **Zero-dependency core.** The whole pipeline — data generation,
 > reconciliation (heuristic Stage 4), evaluation and multi-seed sweeps — is
@@ -27,28 +35,43 @@ python evaluate.py                 # precision / recall / F1 + exception audit
 python run_sweep.py --seeds 20     # 20-seed sweep: the anti-cherry-pick check
 
 python app.py                      # web dashboard -> http://localhost:8080
+# Or on Windows, 1-click launch with:
+# .\LedgerZero.exe                  # auto-starts server & opens browser
 python test_web_ui.py              # headless smoke test of the web UI
 ```
 
+For PDF, Word, and Excel uploads, install the optional parsers with
+`pip install -r requirements-full.txt`.
+
 *(Replace `OWNER/REPO` in the badge and clone URL after publishing.)*
+
+## 🏆 Buildathon Submission Package
+
+| Asset | Purpose |
+|---|---|
+| `SUBMISSION.md` | Project narrative and judge-facing overview |
+| `SUBMISSION_CHECKLIST.md` | All 12 application fields with paste-ready answers |
+| `PITCH_VIDEO.md` | Timed five-minute live-demo script and recording checklist |
+| `ARCHITECTURE.md` | Architecture diagram, LLM boundary, and production caveats |
 
 ---
 
 ## 🌟 Key Features
 
 1. **Multi-Format Ingestion**:
-   - Upload statements in **PDF (.pdf)**, **Word (.docx, .doc)**, **Excel (.xlsx, .xls)**, **CSV/TSV/TXT (.csv, .tsv, .txt)**, **XML (.xml)**, and **JSON (.json)**.
+   - Upload statements in **PDF (.pdf)**, **Word (.docx)**, **Excel (.xlsx, .xls)**, **CSV/TSV/TXT (.csv, .tsv, .txt)**, **XML (.xml)**, and **JSON (.json)**.
    - Smart column mapper auto-detects `Amount`, `Date`, `Reference/UTR`, and `Vendor/Description` across different ERP/bank naming standards.
 
 2. **5-Stage Reconciliation Pipeline**:
    - **Stage 1 (Exact Match)**: Identical reference IDs and exact amounts.
    - **Stage 2 (Fuzzy Match)**: Business suffix normalization (`Pvt Ltd`, `LLP`, `Inc`), SequenceMatcher vendor similarity, and rounding delta tolerance (up to Rs. 5.00).
    - **Stage 3 (Split Payments)**: Detects N bank transactions summing to 1 ledger transaction within settlement windows.
-   - **Stage 4 (GPU LLM Reasoning)**: Local `Qwen2.5-3B-Instruct` on NVIDIA RTX GPU for complex leftover ambiguity with domain guardrails.
+   - **Stage 4 (Optional Local LLM Review)**: Local `Qwen2.5-3B-Instruct` reviews leftover ambiguity only after deterministic rules decline it, with domain guardrails.
    - **Stage 5 (Audit Trail & Exceptions)**: Generates structured matches, honest exception categorizations, and variance analytics.
 
-3. **⚡ GPU Acceleration**:
-   - Powered by CUDA 13.0 with native Blackwell (`sm_120`) acceleration on **NVIDIA GeForce RTX 5070 Laptop GPU** (8 GB VRAM) in FP16 precision.
+3. **⚡ Optional Local LLM Acceleration**:
+   - The deterministic core requires no model or accelerator. When available,
+     the optional Qwen path can run locally on CUDA in FP16.
 
 4. **💬 Settlement Q&A Agent (`settlement_qa.py`)**:
    - Natural language conversational assistant powered directly by **Qwen2.5-3B-Instruct**.
@@ -91,31 +114,31 @@ Sample run (seed 42, heuristic Stage 4 — exactly reproducible with `--seed 42`
 ======================================================================
 EVALUATION vs GROUND TRUTH (ground_truth.csv)
 ======================================================================
-Bank statement rows:          70
-Ledger rows:                  65
-Matches proposed:             62
-  correct:                    62
+Bank statement rows:          77
+Ledger rows:                  71
+Matches proposed:             68
+  correct:                    68
   wrong:                      0
   self-consistency collisions:0
 
 PRECISION:                    100.0%
 
-Matchable bank rows:          63
-  correctly matched:          63
+Matchable bank rows:          69
+  correctly matched:          69
 BANK RECALL:                  100.0%
 F1 (bank side):               100.0%
 
-Matchable ledger rows:        62
-  correctly matched:          62
+Matchable ledger rows:        68
+  correctly matched:          68
 LEDGER RECALL:                100.0%
 
 Value reconciled:
-  bank:   Rs.3,361,023.19 of Rs.3,565,215.34 (94.3% of value)
-  ledger: Rs.3,361,016.93 of Rs.3,547,722.14 (94.7% of value)
+  bank:   Rs.3,412,552.68 of Rs.3,617,777.72 (94.3% of value)
+  ledger: Rs.3,412,548.92 of Rs.3,599,254.13 (94.8% of value)
 
 Per-tier accuracy:
-  exact          : 49/49 correct
-  fuzzy          : 12/12 correct
+  exact          : 54/54 correct
+  fuzzy          : 13/13 correct
   split_payment  : 1/1 correct
 
 Per-scenario breakdown (bank side):
@@ -127,12 +150,13 @@ Per-scenario breakdown (bank side):
   missing_ref          1          1        1       0
   rounding             7          7        7       0
   split_payment        2          2        2       0
+  tax_line             7          6        6       0
   vendor_variant       4          4        4       0
 
 ----------------------------------------------------------------------
 EXCEPTION AUDIT (the honest-exception-list test)
 ----------------------------------------------------------------------
-Unmatched bank rows:     7  -> 7 unmatchable by design, 0 missed, 0 deferred to review
+Unmatched bank rows:     8  -> 8 unmatchable by design, 0 missed, 0 deferred to review
 Unmatched ledger rows:   3  -> 0 unmatchable by design, 0 missed, 3 deferred to review
 
 HONEST EXCEPTION LIST: YES (3 row(s) honestly deferred to human review)
@@ -149,8 +173,8 @@ SWEEP SUMMARY -- heuristic Stage 4, 20 seeds (42..61)
   bank_recall       : mean  100.0%   min  100.0%   max  100.0%
   ledger_recall     : mean  100.0%   min  100.0%   max  100.0%
   f1_bank           : mean  100.0%   min  100.0%   max  100.0%
-  bank_value_pct    : mean   94.2%   min   91.4%   max   97.3%
-  ledger_value_pct  : mean   93.7%   min   86.7%   max   98.7%
+  bank_value_pct    : mean   94.3%   min   91.5%   max   97.3%
+  ledger_value_pct  : mean   93.8%   min   87.0%   max   98.7%
   honest exception lists: 20/20 runs
 ```
 
@@ -160,16 +184,15 @@ fuzzy-matched on seed 52 (precision 98.4%, honest list NO) — exactly the
 failure mode a single-seed demo would have hidden. The guard now rejects
 candidate pairs whose non-empty reference ids disagree.
 
-### Heuristic vs LLM (seed 42, both fully evaluated)
+### Optional local LLM path
 
-Both configs score identically — 100% precision / recall / F1, with the same
-62 matches coming from the deterministic stages 1–3. The difference is in the
-exception queue: the heuristic matched everything it could and deferred 3
-rows, while the LLM examined all 10 leftovers and correctly declined every
-one — the duplicate-amount decoys, bank fees and one-side orphans genuinely
-have no counterpart — deferring them with written reasoning instead of a
-guess. The LLM run is GPU-accelerated (RTX 5070, fp16) and its responses are
-disk-cached, so repeat runs skip inference entirely.
+The published deterministic benchmark is the baseline evidence. The optional
+local Qwen Stage 4 runs only after the deterministic stages decline a row. Its
+structured proposals are still checked for row indices, confidence, amount and
+date bounds, one-to-one assignment, and conflicting non-empty references. If
+the model is unavailable, the core remains usable through the guarded heuristic
+fallback. Do not present an LLM score unless it has been evaluated on the
+machine used for the demo.
 
 ---
 
@@ -183,7 +206,8 @@ Open **http://localhost:8080/dashboard.html** in your browser.
 
 ### 2. Upload and Reconcile
 - Drag and drop your **Bank Statement** (PDF, Word, Excel, CSV, XML) and **Company Ledger** into the upload zone.
-- Click **"▶ Run Reconciliation (GPU)"**.
+- Enable **"Local LLM reasoning"** only when you want the optional Qwen model to review ambiguous rows and generate narrative commentary; otherwise the dashboard stays instant in deterministic mode.
+- Click **"▶ Reconcile & Build Worklist"**.
 - Explore matches, inspect variances, and export reports.
 
 ### 3. CLI Batch & Evaluation Run
@@ -231,6 +255,13 @@ sweeps don't re-pay inference latency.
 | `evaluate.py` | Benchmark evaluation: precision / recall / F1, value coverage, per-scenario accuracy, exception honesty audit |
 | `run_sweep.py` | Multi-seed evaluation sweep — aggregates accuracy and honesty across N seeded datasets |
 | `requirements.txt` | Optional deps for the Stage 4 LLM path only (transformers, torch, accelerate) |
+| `requirements-full.txt` | Optional LLM plus PDF, Word, and Excel ingestion dependencies |
+| `controller_actions.py` | Policy-limited exception worklist with priority, owner, SLA, evidence, and hash-linked audit records |
+| `benchmark_engine.py` | Runtime benchmark that strips hidden truth before matching and scores results afterward |
+| `SUBMISSION.md` | Judge-ready project narrative |
+| `SUBMISSION_CHECKLIST.md` | Application-form completion gate |
+| `PITCH_VIDEO.md` | Five-minute live-demo script and recording checklist |
+| `ARCHITECTURE.md` | System diagram, decision boundary, reliability controls, and production caveats |
 
 ## 📦 Repository notes
 
@@ -243,4 +274,3 @@ sweeps don't re-pay inference latency.
 - CI (`.github/workflows/ci.yml`) runs the full loop on Python 3.11 and 3.13
   at every push and **fails if precision, recall or exception honesty
   regress** — the numbers in this README are enforced, not just asserted.
-

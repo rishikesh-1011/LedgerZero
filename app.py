@@ -1,7 +1,7 @@
 """
 app.py
 
-Full-featured Web App & Reconciliation API Server for AI Finance Controller.
+Full-featured Web App & Reconciliation API Server for LedgerZero (Autonomous Treasury & Close Engine).
 Serves the interactive multi-module platform:
   - 5-Stage Multi-Source Reconciliation Engine
   - Settlement Q&A Agent (GPU LLM)
@@ -14,34 +14,35 @@ Run:
 """
 
 import base64
+import binascii
 import http.server
 import json
 import os
 import socketserver
 import sys
+import traceback
 from datetime import datetime
 
 import document_parser
 import reconcile
+import controller_actions
 from reconcile import (
     stage1_exact, stage2_fuzzy, stage3_split_payments, stage4_escalate
 )
 import settlement_qa
 import cash_forecaster
 import tax_matcher
-
-# Interactive uploads should feel instant: default Stage 4 to the
-# deterministic heuristic (<1s).  Set APP_USE_LLM=1 to use the GPU LLM
-# for ambiguous rows instead (first call loads the model, ~30-60s).
-# The Q&A / forecast / tax endpoints keep their own per-request use_llm.
-if os.environ.get("APP_USE_LLM", "0").strip().lower() not in ("1", "true", "yes"):
-    reconcile.USE_LLM = False
+import exporter
+import benchmark_engine
 
 PORT = 8080
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+MAX_REQUEST_BYTES = 25 * 1024 * 1024
+MIN_BENCHMARK_RECORDS = 50
+MAX_BENCHMARK_RECORDS = 20_000
 
 
-def reconcile_records(bank_rows, ledger_rows):
+def reconcile_records(bank_rows, ledger_rows, use_llm=False):
     """Run the 5-stage reconciliation pipeline on in-memory row lists."""
     total_bank, total_ledger = len(bank_rows), len(ledger_rows)
 
@@ -52,7 +53,7 @@ def reconcile_records(bank_rows, ledger_rows):
     all_matches += stage1_exact(bank, ledger)
     all_matches += stage2_fuzzy(bank, ledger)
     all_matches += stage3_split_payments(bank, ledger)
-    s4_matches, review_rows = stage4_escalate(bank, ledger)
+    s4_matches, review_rows = stage4_escalate(bank, ledger, use_llm=use_llm)
     all_matches += s4_matches
     review_ids = {id(r) for r in review_rows}
 
@@ -225,100 +226,298 @@ class ReconciliationRequestHandler(http.server.SimpleHTTPRequestHandler):
             self._send_json(res)
             return
 
+        if self.path.startswith("/api/action-plan"):
+            self._send_json(controller_actions.build_action_plan())
+            return
+
+        if self.path.startswith("/api/benchmark"):
+            try:
+                res = benchmark_engine.run_benchmark_suite(n_records=500)
+                self._send_json(res)
+            except Exception:
+                traceback.print_exc()
+                self._send_json({"error": "Benchmark could not be completed. Please retry."}, status=500)
+            return
+
+        # Multi-Format Export GET Endpoint
+        if self.path.startswith("/api/export"):
+            try:
+                from urllib.parse import urlparse, parse_qs
+                parsed = urlparse(self.path)
+                params = parse_qs(parsed.query)
+                fmt = params.get("format", ["xlsx"])[0].lower()
+                kind = params.get("kind", ["all"])[0].lower()
+
+                report_path = os.path.join(DIRECTORY, "reconciliation_report.json")
+                if os.path.exists(report_path):
+                    with open(report_path, "r", encoding="utf-8") as f:
+                        report = json.load(f)
+                else:
+                    report = {"summary": {}, "matches": [], "exceptions": []}
+
+                content_type, filename, data = self._get_export_data(exporter, report, fmt, kind)
+                self.send_response(200)
+                self.send_header("Content-Type", content_type)
+                self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+                return
+            except Exception:
+                traceback.print_exc()
+                self._send_json({"error": "Export could not be generated. Please retry."}, status=500)
+                return
+
         super().do_GET()
 
     def do_POST(self):
         content_type = self.headers.get("Content-Type", "")
-        content_length = int(self.headers.get("Content-Length", 0))
+        content_length_header = self.headers.get("Content-Length")
+        if content_length_header is None:
+            self._send_json({"error": "Missing Content-Length header."}, status=400)
+            return
+        try:
+            content_length = int(content_length_header)
+        except ValueError:
+            self._send_json({"error": "Invalid Content-Length header."}, status=400)
+            return
+        if content_length < 0:
+            self._send_json({"error": "Invalid Content-Length header."}, status=400)
+            return
+        if content_length > MAX_REQUEST_BYTES:
+            self._send_json({"error": "Request exceeds the 25 MB upload limit."}, status=413)
+            return
         body = self.rfile.read(content_length)
 
         # 1. Reconciliation Endpoint
         if self.path.startswith("/api/reconcile"):
             try:
                 if "application/json" in content_type:
-                    data = json.loads(body.decode("utf-8"))
+                    data = self._decode_json_object(body)
                     bank_raw = data.get("bank_content", "")
                     bank_name = data.get("bank_filename", "bank.csv")
                     ledger_raw = data.get("ledger_content", "")
                     ledger_name = data.get("ledger_filename", "ledger.csv")
 
                     if data.get("is_base64"):
-                        bank_bytes = base64.b64decode(bank_raw) if bank_raw else b""
-                        ledger_bytes = base64.b64decode(ledger_raw) if ledger_raw else b""
+                        try:
+                            bank_bytes = base64.b64decode(bank_raw, validate=True) if bank_raw else b""
+                            ledger_bytes = base64.b64decode(ledger_raw, validate=True) if ledger_raw else b""
+                        except (TypeError, binascii.Error) as error:
+                            raise ValueError("Uploaded file payload must be valid base64.") from error
                     else:
                         bank_bytes = bank_raw.encode("utf-8") if isinstance(bank_raw, str) else bank_raw
                         ledger_bytes = ledger_raw.encode("utf-8") if isinstance(ledger_raw, str) else ledger_raw
 
                     bank_rows = document_parser.parse_document(bank_bytes, bank_name)
                     ledger_rows = document_parser.parse_document(ledger_bytes, ledger_name)
+                    use_llm = bool(data.get("use_llm", False))
 
                 else:
-                    self.send_error(400, "Unsupported Content-Type. Use JSON payload.")
+                    self._send_json({"error": "Unsupported Content-Type. Use a JSON payload."}, status=400)
                     return
 
-                if not bank_rows and not ledger_rows:
-                    self.send_error(400, "No transactions could be parsed from the uploaded files.")
-                    return
+                if not bank_rows or not ledger_rows:
+                    raise ValueError("Both the bank statement and ledger must contain at least one valid transaction.")
 
                 print(f"[API] Reconciling {len(bank_rows)} bank rows vs {len(ledger_rows)} ledger rows...")
-                report = reconcile_records(bank_rows, ledger_rows)
+                report = reconcile_records(bank_rows, ledger_rows, use_llm=use_llm)
+                report["action_plan"] = controller_actions.build_action_plan(report)
+                try:
+                    report_path = os.path.join(DIRECTORY, "reconciliation_report.json")
+                    with open(report_path, "w", encoding="utf-8") as f:
+                        json.dump(report, f, indent=2)
+                except OSError:
+                    pass
                 self._send_json(report)
 
-            except Exception as e:
-                import traceback
+            except ValueError as error:
+                self._send_json({"error": str(error)}, status=400)
+            except Exception:
                 traceback.print_exc()
-                self._send_json({"error": str(e), "traceback": traceback.format_exc()}, status=500)
+                self._send_json({"error": "Reconciliation failed. Check the file format and try again."}, status=500)
             return
 
         # 2. Settlement Q&A Endpoint
         if self.path.startswith("/api/qa"):
             try:
-                data = json.loads(body.decode("utf-8"))
+                data = self._decode_json_object(body)
                 question = data.get("question", "").strip()
                 use_llm = data.get("use_llm", True)
 
                 if not question:
-                    self.send_error(400, "Missing 'question' parameter.")
-                    return
+                    raise ValueError("Missing 'question' parameter.")
 
                 res = settlement_qa.ask_settlement_qa(question, use_llm=use_llm)
                 self._send_json(res)
-            except Exception as e:
-                import traceback
+            except ValueError as error:
+                self._send_json({"error": str(error)}, status=400)
+            except Exception:
                 traceback.print_exc()
-                self._send_json({"error": str(e)}, status=500)
+                self._send_json({"error": "Settlement Q&A could not be completed. Please retry."}, status=500)
             return
 
         # 3. Cash Forecaster Endpoint
         if self.path.startswith("/api/forecast"):
             try:
-                data = json.loads(body.decode("utf-8")) if body else {}
+                data = self._decode_json_object(body)
                 opening_bal = float(data.get("opening_balance", cash_forecaster.DEFAULT_OPENING_BALANCE))
                 days = int(data.get("days_horizon", 30))
+                if not 1 <= days <= 365:
+                    raise ValueError("days_horizon must be between 1 and 365.")
                 use_llm = data.get("use_llm", True)
 
                 res = cash_forecaster.generate_cash_forecast(opening_balance=opening_bal, days_horizon=days, use_llm=use_llm)
                 self._send_json(res)
-            except Exception as e:
-                import traceback
+            except ValueError as error:
+                self._send_json({"error": str(error)}, status=400)
+            except Exception:
                 traceback.print_exc()
-                self._send_json({"error": str(e)}, status=500)
+                self._send_json({"error": "Cash forecast could not be completed. Please retry."}, status=500)
             return
 
         # 4. Tax-Line Matcher Endpoint
         if self.path.startswith("/api/tax-match"):
             try:
-                data = json.loads(body.decode("utf-8")) if body else {}
+                data = self._decode_json_object(body)
                 use_llm = data.get("use_llm", True)
                 res = tax_matcher.run_tax_line_reconciliation(use_llm=use_llm)
                 self._send_json(res)
-            except Exception as e:
-                import traceback
+            except ValueError as error:
+                self._send_json({"error": str(error)}, status=400)
+            except Exception:
                 traceback.print_exc()
-                self._send_json({"error": str(e)}, status=500)
+                self._send_json({"error": "Tax-line matching could not be completed. Please retry."}, status=500)
             return
 
+        # 5. Closed-Loop Action Resolution Endpoint
+        if self.path.startswith("/api/action-plan/resolve"):
+            try:
+                data = self._decode_json_object(body)
+                action = data.get("action", "resolve_item")
+                if action == "auto_resolve_tolerances":
+                    max_amt = float(data.get("max_amount", 500.0))
+                    if not 0 <= max_amt <= 100_000:
+                        raise ValueError("max_amount must be between 0 and 100000.")
+                    res = controller_actions.auto_resolve_tolerances(max_amount=max_amt)
+                    res["updated_action_plan"] = controller_actions.build_action_plan()
+                    self._send_json(res)
+                elif action == "reset":
+                    controller_actions.reset_resolved_actions()
+                    res = {"status": "reset", "updated_action_plan": controller_actions.build_action_plan()}
+                    self._send_json(res)
+                else:
+                    item_id = str(data.get("item_id") or "").strip()
+                    if not item_id:
+                        raise ValueError("Missing action item id.")
+                    res_type = data.get("resolution_type", "APPROVED_ADJUSTING_ENTRY")
+                    note = data.get("note", "Controller approved adjusting journal entry")
+                    entry = controller_actions.resolve_action(item_id, resolution_type=res_type, note=note)
+                    self._send_json({
+                        "status": "success",
+                        "entry": entry,
+                        "updated_action_plan": controller_actions.build_action_plan()
+                    })
+            except ValueError as error:
+                self._send_json({"error": str(error)}, status=400)
+            except Exception:
+                traceback.print_exc()
+                self._send_json({"error": "Action resolution could not be completed. Please retry."}, status=500)
+            return
+
+        # 6. High-Throughput Benchmark & Stress-Test Endpoint
+        if self.path.startswith("/api/benchmark"):
+            try:
+                data = self._decode_json_object(body)
+                n_records = int(data.get("n_records", 500))
+                if not MIN_BENCHMARK_RECORDS <= n_records <= MAX_BENCHMARK_RECORDS:
+                    raise ValueError(
+                        f"n_records must be between {MIN_BENCHMARK_RECORDS} and {MAX_BENCHMARK_RECORDS}."
+                    )
+                res = benchmark_engine.run_benchmark_suite(n_records=n_records)
+                self._send_json(res)
+            except ValueError as error:
+                self._send_json({"error": str(error)}, status=400)
+            except Exception:
+                traceback.print_exc()
+                self._send_json({"error": "Benchmark could not be completed. Please retry."}, status=500)
+            return
+
+        # 5. Multi-Format Export Endpoint (POST for in-memory reports)
+        if self.path.startswith("/api/export"):
+            try:
+                from urllib.parse import urlparse, parse_qs
+                parsed = urlparse(self.path)
+                params = parse_qs(parsed.query)
+                fmt = params.get("format", ["xlsx"])[0].lower()
+                kind = params.get("kind", ["all"])[0].lower()
+
+                data_in = self._decode_json_object(body)
+                report = data_in.get("report")
+                if not report:
+                    report_path = os.path.join(DIRECTORY, "reconciliation_report.json")
+                    if os.path.exists(report_path):
+                        with open(report_path, "r", encoding="utf-8") as f:
+                            report = json.load(f)
+                    else:
+                        report = {"summary": {}, "matches": [], "exceptions": []}
+
+                content_type, filename, data = self._get_export_data(exporter, report, fmt, kind)
+                self.send_response(200)
+                self.send_header("Content-Type", content_type)
+                self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+                return
+            except ValueError as error:
+                self._send_json({"error": str(error)}, status=400)
+                return
+            except Exception:
+                traceback.print_exc()
+                self._send_json({"error": "Export could not be generated. Please retry."}, status=500)
+                return
+
         self.send_error(404, "Endpoint not found")
+
+    def _get_export_data(self, exporter, report, fmt, kind):
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        if fmt == "xlsx":
+            return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", f"reconciliation_{ts}.xlsx", exporter.generate_xlsx(report)
+        elif fmt == "pdf":
+            return "application/pdf", f"reconciliation_audit_{ts}.pdf", exporter.generate_pdf(report)
+        elif fmt == "docx":
+            return "application/vnd.openxmlformats-officedocument.wordprocessingml.document", f"reconciliation_{ts}.docx", exporter.generate_docx(report)
+        elif fmt == "xml":
+            return "application/xml; charset=utf-8", f"reconciliation_{ts}.xml", exporter.generate_xml(report)
+        elif fmt == "json":
+            body = json.dumps(report, indent=2).encode("utf-8")
+            return "application/json; charset=utf-8", f"reconciliation_{ts}.json", body
+        elif fmt == "tsv":
+            return "text/tab-separated-values; charset=utf-8", f"reconciliation_{ts}.tsv", exporter.generate_tsv(report)
+        elif fmt == "html":
+            return "text/html; charset=utf-8", f"reconciliation_report_{ts}.html", exporter.generate_html_report(report)
+        elif fmt == "zip":
+            return "application/zip", f"reconciliation_all_formats_{ts}.zip", exporter.generate_zip_all(report)
+        elif fmt == "csv":
+            if kind == "exceptions":
+                return "text/csv; charset=utf-8", f"unresolved_exceptions_{ts}.csv", exporter.generate_csv_exceptions(report)
+            else:
+                return "text/csv; charset=utf-8", f"reconciled_matches_{ts}.csv", exporter.generate_csv_matches(report)
+        else:
+            return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", f"reconciliation_{ts}.xlsx", exporter.generate_xlsx(report)
+
+    @staticmethod
+    def _decode_json_object(body):
+        if not body:
+            return {}
+        try:
+            data = json.loads(body.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ValueError("Request body must be valid UTF-8 JSON.") from error
+        if not isinstance(data, dict):
+            raise ValueError("JSON request body must be an object.")
+        return data
 
     def _send_json(self, data, status=200):
         body = json.dumps(data, indent=2).encode("utf-8")
@@ -353,7 +552,7 @@ def main():
     ensure_sample_data()
     httpd = ThreadingServer(("", PORT), ReconciliationRequestHandler)
     print("=" * 70)
-    print(f"[SERVER] AI Finance Controller Web App running at:")
+    print(f"[SERVER] LedgerZero Web App running at:")
     print(f"   http://localhost:{PORT}/dashboard.html")
     print("=" * 70)
     print("Modules Active:")
@@ -365,6 +564,23 @@ def main():
     print("Supported Upload Formats: PDF, Word (.docx), Excel (.xlsx), CSV, XML, JSON")
     print()
     print("Press Ctrl+C to stop the server.")
+
+    should_launch_browser = (
+        "--no-browser" not in sys.argv
+        and os.environ.get("HEADLESS") != "1"
+        and os.environ.get("NO_BROWSER") != "1"
+    )
+    if should_launch_browser:
+        def _open_browser_worker():
+            import time
+            import webbrowser
+            time.sleep(0.5)
+            try:
+                webbrowser.open(f"http://localhost:{PORT}/dashboard.html")
+            except Exception:
+                pass
+        import threading
+        threading.Thread(target=_open_browser_worker, daemon=True).start()
 
     while True:
         try:

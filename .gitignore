@@ -13,13 +13,18 @@ matches.csv
 exceptions.csv
 evaluation_summary.json
 reconciliation_report.json
+resolved_actions.json
+resolved_actions.json.tmp
+controller_action_audit.jsonl
 sweep_results/
 .llm_cache.json
 llm_run_output.txt
 *.log
 
-# --- OS / editor noise ---
+# --- OS / editor / agent noise ---
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
+.agents/
+scratch*/

@@ -408,10 +408,12 @@ def parse_document(file_content, filename="statement.csv"):
         if isinstance(file_content, str):
             file_content = file_content.encode("utf-8")
         return parse_excel(file_content, filename)
-    elif ext in (".docx", ".doc"):
+    elif ext == ".docx":
         if isinstance(file_content, str):
             file_content = file_content.encode("utf-8")
         return parse_docx(file_content, filename)
+    elif ext == ".doc":
+        raise ValueError("Legacy .doc files are not supported. Export the statement as .docx, .csv, or .xlsx.")
     elif ext == ".pdf":
         if isinstance(file_content, str):
             file_content = file_content.encode("utf-8")

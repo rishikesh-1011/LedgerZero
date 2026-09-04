@@ -345,6 +345,11 @@ def resolve_ambiguous(bank_rows, ledger_rows, model_name=None, confidence_thresh
             b = bank_rows[bi]
             l = ledger_rows[li]
 
+            if (b.get("reference_id") and l.get("reference_id")
+                    and b["reference_id"] != l["reference_id"]):
+                print(f"  [LLM Guardrail] Rejected bank[{bi}] ↔ ledger[{li}]: conflicting reference ids")
+                continue
+
             # Domain guardrail: prevent hallucinations between wildly different transactions
             amount_diff = abs(b["amount"] - l["amount"])
             date_diff = abs((b["date"] - l["date"]).days)

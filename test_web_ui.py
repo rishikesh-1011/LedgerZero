@@ -80,7 +80,7 @@ def main():
             report_backup = f.read()
 
     kill_port_owners()
-    proc = subprocess.Popen([sys.executable, "app.py"], cwd=HERE,
+    proc = subprocess.Popen([sys.executable, "app.py", "--no-browser"], cwd=HERE,
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         # 0. wait for the server to accept connections
