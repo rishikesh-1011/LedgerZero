@@ -99,25 +99,26 @@ def ask_settlement_qa(question, report=None, use_llm=True):
         from llm_resolver import _load_model
         pipe = _load_model()
 
-        system_prompt = """You are an AI Financial Controller & Settlement Specialist for Razorpay Track 04.
-You will be provided with reconciliation results (matches, variances, settlement dates, fees, and exceptions).
+        system_prompt = """You are an AI Financial Controller & Autonomous Settlement Specialist for LedgerZero (Razorpay Track 04).
+You will be provided with reconciliation results (matches, variances, settlement dates, bank fees, and exceptions).
 
-Your task: Provide a clear, precise, and authoritative answer to the user's question.
+Your task: Provide a clear, precise, authoritative, and helpful answer to the user.
 
 RULES:
-1. Always base your response strictly on the provided context facts.
-2. Quote exact transaction reference IDs, amounts in INR (Rs. / ₹), dates, vendors, and match tiers.
-3. If explaining an exception, clarify why it could not be automatically matched and recommend the next action.
-4. Keep the answer structured, concise, and professional using markdown bullet points.
+1. If the user gives a greeting (e.g. "hi", "hello", "hey") or general inquiry, greet them warmly as the LedgerZero Settlement Copilot, give a concise 1-sentence status of the reconciled transactions, and suggest 2-3 specific audit questions they can ask.
+2. For specific transaction inquiries, always base your response strictly on the provided context facts.
+3. Quote exact transaction reference IDs, amounts in INR (₹ / Rs.), dates, vendors, and match tiers.
+4. If explaining an exception or variance, explain root cause and recommend the next operational action.
+5. Keep answers structured, concise, and professional using markdown bullet points.
 """
 
         user_prompt = f"""RECONCILIATION CONTEXT:
 {context_str}
 
-USER QUESTION:
+USER MESSAGE:
 {question}
 
-Provide your financial explanation:"""
+Provide your response:"""
 
         messages = [
             {"role": "system", "content": system_prompt},
