@@ -47,6 +47,7 @@ For PDF, Word, and Excel uploads, install the optional parsers with
 
 | Asset | Purpose |
 |---|---|
+| `INSTRUCTIONS.md` | Complete operations, setup, CLI & web execution guide |
 | `SUBMISSION.md` | Project narrative and judge-facing overview |
 | `SUBMISSION_CHECKLIST.md` | All 12 application fields with paste-ready answers |
 | `PITCH_VIDEO.md` | Timed five-minute live-demo script and recording checklist |
