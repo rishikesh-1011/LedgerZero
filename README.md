@@ -2,7 +2,7 @@
 
 **Track 04: AI Finance Controller — Razorpay AI Buildathon 2026**
 
-![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/rishikesh-1011/LedgerZero/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![LLM](https://img.shields.io/badge/LLM-local%20%7C%20GPU%20optional-9cf)
@@ -26,8 +26,8 @@ worklist with audit evidence.
 ## 🚀 Quick Start (fresh clone)
 
 ```bash
-git clone https://github.com/OWNER/REPO.git ai-finance-controller
-cd ai-finance-controller
+git clone https://github.com/rishikesh-1011/LedgerZero.git
+cd LedgerZero
 
 python generate_data.py            # synthetic data + hidden ground truth (seed 42)
 python reconcile.py --no-llm       # 5-stage pipeline, heuristic Stage 4
@@ -42,8 +42,6 @@ python test_web_ui.py              # headless smoke test of the web UI
 
 For PDF, Word, and Excel uploads, install the optional parsers with
 `pip install -r requirements-full.txt`.
-
-*(Replace `OWNER/REPO` in the badge and clone URL after publishing.)*
 
 ## 🏆 Buildathon Submission Package
 
