@@ -157,6 +157,33 @@ def main():
         assert "tax_lines" in tax_data and "summary" in tax_data, "tax match invalid"
         print(f"PASS  POST /api/tax-match -> {tax_data['summary']['total_invoices_audited']} invoices audited")
 
+        # 8. Pitch video suite page
+        status, body = request("/pitch.html")
+        assert status == 200 and b"pitch video" in body.lower(), f"pitch.html -> {status}"
+        print(f"PASS  GET /pitch.html -> 200 ({len(body) // 1024} KB served)")
+
+        # 9. Benchmark endpoint
+        bm_payload = {"n_records": 50}
+        status, body = request("/api/benchmark", bm_payload)
+        assert status == 200, f"/api/benchmark -> {status}: {body[:200]}"
+        bm_data = json.loads(body)
+        perf = bm_data.get("performance_metrics", {})
+        assert "throughput_txns_per_sec" in perf, "performance_metrics missing from benchmark"
+        print(f"PASS  POST /api/benchmark -> 50 records ({perf['throughput_txns_per_sec']:,.0f} txns/sec, {perf['elapsed_time_ms']:.1f}ms)")
+
+        # 10. Controller action-plan endpoint
+        status, body = request("/api/action-plan")
+        assert status == 200, f"/api/action-plan -> {status}: {body[:200]}"
+        ap_data = json.loads(body)
+        assert "action_items" in ap_data or "items" in ap_data, "action plan invalid"
+        n_items = len(ap_data.get("action_items", ap_data.get("items", [])))
+        print(f"PASS  GET /api/action-plan -> 200 ({n_items} worklist items)")
+
+        # 11. Multi-format export endpoint
+        status, body = request("/api/export?format=csv")
+        assert status == 200, f"/api/export?format=csv -> {status}"
+        print(f"PASS  GET /api/export?format=csv -> 200 ({len(body)} bytes exported)")
+
         print("-" * 60)
         print("ALL CHECKS PASSED — run `python app.py` and open "
               "http://localhost:8080/dashboard.html to use the UI")

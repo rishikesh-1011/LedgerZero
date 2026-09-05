@@ -257,6 +257,10 @@ sweeps don't re-pay inference latency.
 | `requirements-full.txt` | Optional LLM plus PDF, Word, and Excel ingestion dependencies |
 | `controller_actions.py` | Policy-limited exception worklist with priority, owner, SLA, evidence, and hash-linked audit records |
 | `benchmark_engine.py` | Runtime benchmark that strips hidden truth before matching and scores results afterward |
+| `exporter.py` | Multi-format reporting engine (Excel, PDF, Word, CSV, XML, JSON, HTML) |
+| `pitch.html` | Interactive Pitch Video Suite with synchronized timeline chapters and live audio narrator |
+| `pitch_video.mp4` | Broadcast-grade Full HD 1080p pitch video (Azure Neural Voice, 2m 11s) |
+| `generate_professional_pitch.py` | Script to render broadcast-grade pitch video with Azure Neural voiceover and PyAV H.264 muxing |
 | `SUBMISSION.md` | Judge-ready project narrative |
 | `SUBMISSION_CHECKLIST.md` | Application-form completion gate |
 | `PITCH_VIDEO.md` | Five-minute live-demo script and recording checklist |
